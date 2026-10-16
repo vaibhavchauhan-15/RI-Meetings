@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "db:seed": "node scripts/seed-supabase.js",
     "db:migrate": "node scripts/apply-migration.js",
-    "meeting:sync": "node scripts/sync-daily-meeting.js"
+    "meeting:sync": "node scripts/sync-supabase.js",
+    "sync:supabase": "node scripts/sync-supabase.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.0",

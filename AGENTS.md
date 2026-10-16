@@ -86,11 +86,13 @@ Whenever the user provides a meeting summary and/or raw transcript (in Hindi, Hi
    - All meeting records are stored directly in Supabase (`meetings`, `breakdown_machines`, `meeting_parts`, `meeting_directives`, `meeting_action_items`).
    - Use the dedicated daily ingestion pipeline:
      ```bash
-     node scripts/sync-daily-meeting.js <meeting-data.json>
+     node scripts/sync-supabase.js <path-or-json>
      # or via npm script:
+     npm run sync:supabase -- <path-or-json>
+     # or legacy:
      npm run meeting:sync -- <path-or-json>
      ```
-     Or programmatically import and execute `syncDailyMeeting(data)` from `scripts/sync-daily-meeting.js`.
+     Or programmatically import and execute `syncToSupabase(data)` from `scripts/sync-supabase.js`.
    - **DO NOT** use `seed-supabase.js` for daily meetings (which re-seeds historical data). The streamlined pipeline atomically upserts ONLY that specific day's meeting, preventing repetitive database re-seeding.
 
 3. **Strict One Machine = One Breakdown Card Rule**:
@@ -147,7 +149,7 @@ Whenever the user provides a meeting summary and/or raw transcript (in Hindi, Hi
    ```
 
 6. **Mandatory Supabase Ingestion Verification Before GitHub Synchronization**:
-   - **Step A (Direct Supabase Ingestion)**: Ingest the meeting data directly into Supabase using `node scripts/sync-daily-meeting.js <meeting-data.json>` (or `npm run meeting:sync -- <path-or-json>`) or via the Supabase Edge Function webhook.
+   - **Step A (Direct Supabase Ingestion)**: Ingest the meeting data directly into Supabase using `node scripts/sync-supabase.js <path-or-json>` (or `npm run sync:supabase -- <path-or-json>`) or via the Supabase Edge Function webhook.
    - **Step B (Explicit Verification Check)**: Before staging, committing, or pushing code to GitHub, agents MUST run an explicit database verification query confirming that:
      1. The master record exists in the `meetings` table.
      2. All child records exist in `breakdown_machines`, `meeting_parts`, `meeting_directives`, and `meeting_action_items` with matching record counts.

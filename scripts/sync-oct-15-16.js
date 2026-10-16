@@ -9,7 +9,11 @@
  * - Direct Supabase ingestion with automated verification check (Step A, B, C)
  */
 
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { syncDailyMeeting, supabaseAdmin } from './sync-daily-meeting.js';
+
+const __filename = fileURLToPath(import.meta.url);
 
 export const meeting15 = {
     id: "meet-2026-10-15",
@@ -565,7 +569,9 @@ async function run() {
     console.log('====================================================');
 }
 
-run().catch(err => {
-    console.error('❌ Ingestion or verification failed:', err);
-    process.exit(1);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+    run().catch(err => {
+        console.error('❌ Ingestion or verification failed:', err);
+        process.exit(1);
+    });
+}
