@@ -9,13 +9,21 @@ export default defineConfig(({ mode }) => ({
   build: {
     target: 'esnext',
     cssCodeSplit: true,
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom']
+        manualChunks(id) {
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'vendor-react';
+          }
+          if (id.includes('node_modules/@supabase')) {
+            return 'vendor-supabase';
+          }
+          if (id.includes('node_modules/exceljs')) {
+            return 'vendor-exceljs';
+          }
         }
       }
     }
   }
 }));
-

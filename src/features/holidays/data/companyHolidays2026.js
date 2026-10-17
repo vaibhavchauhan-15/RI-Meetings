@@ -1,0 +1,2073 @@
+/**
+ * Single Typed Source of Truth for Reach International 2026 Calendar
+ * 
+ * Consolidated master list of all 2026 Indian Festivals, Religious Observances & Company Holidays.
+ * - 15 Official Company Holidays marked with isCompanyHoliday: true
+ * - All other observances and festivals marked with isCompanyHoliday: false
+ * - All entries stored in one authoritative dataset (ALL_INDIAN_CALENDAR_EVENTS_2026)
+ * - Zero duplicated entries between company holidays and festival observances.
+ */
+
+export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
+    {
+        "id": "event-2026-01-01",
+        "date": "2026-01-01",
+        "name": "New Year's Day",
+        "subLabel": "First Day of 2026",
+        "dayOfWeek": "Thursday",
+        "month": 1,
+        "day": 1,
+        "category": "National",
+        "religion": "National",
+        "icon": "🎉",
+        "isCompanyHoliday": true,
+        "holidayKey": "new-years-day",
+        "type": "Official Company Holiday",
+        "notes": "First day of the calendar year. Offices and operations closed.",
+        "isGazetted": true
+    },
+    {
+        "id": "event-2026-01-05",
+        "date": "2026-01-05",
+        "name": "Guru Gobind Singh Jayanti",
+        "subLabel": "Prakash Parv of 10th Sikh Guru",
+        "dayOfWeek": "Monday",
+        "month": 1,
+        "day": 5,
+        "category": "Sikh",
+        "religion": "Sikhism",
+        "icon": "ੴ",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Birth anniversary of Guru Gobind Singh Ji, founder of the Khalsa Panth."
+    },
+    {
+        "id": "event-2026-01-06",
+        "date": "2026-01-06",
+        "name": "Epiphany",
+        "subLabel": "Three Kings Day",
+        "dayOfWeek": "Tuesday",
+        "month": 1,
+        "day": 6,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "✝️",
+        "isCompanyHoliday": false,
+        "type": "Christian Observance (Working Day)",
+        "notes": "Christian feast celebrating the revelation of God incarnate as Jesus Christ to the Magi."
+    },
+    {
+        "id": "event-2026-01-12",
+        "date": "2026-01-12",
+        "name": "National Youth Day",
+        "subLabel": "Swami Vivekananda Jayanti",
+        "dayOfWeek": "Monday",
+        "month": 1,
+        "day": 12,
+        "category": "National",
+        "religion": "National",
+        "icon": "🇮🇳",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Birth anniversary of Swami Vivekananda, celebrated nationwide to inspire youth."
+    },
+    {
+        "id": "event-2026-01-13",
+        "date": "2026-01-13",
+        "name": "Lohri",
+        "subLabel": "Punjabi Winter Harvest Festival",
+        "dayOfWeek": "Tuesday",
+        "month": 1,
+        "day": 13,
+        "category": "Sikh",
+        "religion": "Sikhism",
+        "icon": "🌾",
+        "isCompanyHoliday": false,
+        "type": "Cultural Festival (Working Day)",
+        "notes": "Joyous harvest and bonfire festival in Punjab and North India marking the passing of the winter solstice."
+    },
+    {
+        "id": "event-2026-01-14",
+        "date": "2026-01-14",
+        "name": "Makar Sankranti & Pongal",
+        "subLabel": "Uttarayan / Maghi / Thai Pongal",
+        "dayOfWeek": "Wednesday",
+        "month": 1,
+        "day": 14,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🪁",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Pan-Indian harvest festival marking the Sun entering Capricorn (Makara). Celebrated as Pongal in Tamil Nadu, Uttarayan in Gujarat, and Maghi in Punjab."
+    },
+    {
+        "id": "event-2026-01-15",
+        "date": "2026-01-15",
+        "name": "Indian Army Day & Mattu Pongal",
+        "subLabel": "Armed Forces Honour / Cattle Worship",
+        "dayOfWeek": "Thursday",
+        "month": 1,
+        "day": 15,
+        "category": "National",
+        "religion": "National",
+        "icon": "🇮🇳",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Honoring the courage and valor of the Indian Army soldiers; Mattu Pongal celebration in South India honoring farm animals."
+    },
+    {
+        "id": "event-2026-01-16",
+        "date": "2026-01-16",
+        "name": "Meru Trayodashi",
+        "subLabel": "Jain Observance of Lord Rishabhdev",
+        "dayOfWeek": "Friday",
+        "month": 1,
+        "day": 16,
+        "category": "Jain",
+        "religion": "Jainism",
+        "icon": "卐",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Sacred Jain fasting day dedicated to the first Tirthankara, Lord Adinath (Rishabhdev)."
+    },
+    {
+        "id": "event-2026-01-23",
+        "date": "2026-01-23",
+        "name": "Vasant Panchami (Saraswati Puja)",
+        "subLabel": "Arrival of Spring & Goddess Saraswati",
+        "dayOfWeek": "Friday",
+        "month": 1,
+        "day": 23,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🌸",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Celebration of Goddess Saraswati (goddess of wisdom, music, and arts) and arrival of spring."
+    },
+    {
+        "id": "event-2026-01-23-parakram",
+        "date": "2026-01-23",
+        "name": "Netaji Subhas Chandra Bose Jayanti",
+        "subLabel": "Parakram Diwas (Day of Valour)",
+        "dayOfWeek": "Friday",
+        "month": 1,
+        "day": 23,
+        "category": "National",
+        "religion": "National",
+        "icon": "🇮🇳",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Commemorating the birth of Netaji Subhas Chandra Bose and his leadership in the Azad Hind Fauj."
+    },
+    {
+        "id": "event-2026-01-24",
+        "date": "2026-01-24",
+        "name": "National Girl Child Day",
+        "subLabel": "Empowerment & Gender Equality",
+        "dayOfWeek": "Saturday",
+        "month": 1,
+        "day": 24,
+        "category": "National",
+        "religion": "National",
+        "icon": "👧",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "National awareness day highlighting rights, education, and equality for girl children."
+    },
+    {
+        "id": "event-2026-01-25",
+        "date": "2026-01-25",
+        "name": "National Voters Day",
+        "subLabel": "Democracy & Electoral Awareness",
+        "dayOfWeek": "Sunday",
+        "month": 1,
+        "day": 25,
+        "category": "National",
+        "religion": "National",
+        "icon": "🗳️",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Commemorating the founding of the Election Commission of India (1950)."
+    },
+    {
+        "id": "event-2026-01-26",
+        "date": "2026-01-26",
+        "name": "Republic Day",
+        "subLabel": "77th Republic Day of India",
+        "dayOfWeek": "Monday",
+        "month": 1,
+        "day": 26,
+        "category": "National",
+        "religion": "National",
+        "icon": "🇮🇳",
+        "isCompanyHoliday": true,
+        "holidayKey": "republic-day",
+        "type": "Official Company Holiday",
+        "notes": "Constitution of India came into effect in 1950. Offices and operations closed.",
+        "isGazetted": true
+    },
+    {
+        "id": "event-2026-01-30",
+        "date": "2026-01-30",
+        "name": "Martyrs Day (Shaheed Diwas)",
+        "subLabel": "Mahatma Gandhi Death Anniversary",
+        "dayOfWeek": "Friday",
+        "month": 1,
+        "day": 30,
+        "category": "National",
+        "religion": "National",
+        "icon": "🕊️",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Solemn 2-minute silence observed nationwide in memory of Mahatma Gandhi and freedom fighters who laid down their lives."
+    },
+    {
+        "id": "event-2026-02-01",
+        "date": "2026-02-01",
+        "name": "Guru Ravidas Jayanti",
+        "subLabel": "Bhakti Saint Birth Celebration",
+        "dayOfWeek": "Sunday",
+        "month": 2,
+        "day": 1,
+        "category": "Sikh",
+        "religion": "Sikhism",
+        "icon": "ੴ",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Celebrating the life and egalitarian teachings of Guru Ravidas Ji."
+    },
+    {
+        "id": "event-2026-02-03",
+        "date": "2026-02-03",
+        "name": "Shab-e-Barat",
+        "subLabel": "Night of Forgiveness & Records",
+        "dayOfWeek": "Tuesday",
+        "month": 2,
+        "day": 3,
+        "category": "Islamic",
+        "religion": "Islam",
+        "icon": "☪️",
+        "isCompanyHoliday": false,
+        "type": "Islamic Observance (Working Day)",
+        "notes": "Sacred night in the month of Shaban where Muslims pray, seek forgiveness, and visit ancestral graves."
+    },
+    {
+        "id": "event-2026-02-15",
+        "date": "2026-02-15",
+        "name": "Maha Shivaratri",
+        "subLabel": "The Great Night of Shiva",
+        "dayOfWeek": "Sunday",
+        "month": 2,
+        "day": 15,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🕉️",
+        "isCompanyHoliday": true,
+        "holidayKey": "maha-shivaratri",
+        "type": "Official Company Holiday",
+        "notes": "Night of Lord Shiva observed with meditation and prayers. Operations closed.",
+        "isGazetted": false
+    },
+    {
+        "id": "event-2026-02-18",
+        "date": "2026-02-18",
+        "name": "Ash Wednesday & Losar",
+        "subLabel": "Lent Season Begins / Tibetan New Year",
+        "dayOfWeek": "Wednesday",
+        "month": 2,
+        "day": 18,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "✝️",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Ash Wednesday marks the beginning of the 40-day Christian Lenten fasting period; Losar celebrates Tibetan Buddhist New Year."
+    },
+    {
+        "id": "event-2026-02-19",
+        "date": "2026-02-19",
+        "name": "Chhatrapati Shivaji Maharaj Jayanti",
+        "subLabel": "Founder of Maratha Empire",
+        "dayOfWeek": "Thursday",
+        "month": 2,
+        "day": 19,
+        "category": "National",
+        "religion": "National",
+        "icon": "🚩",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Birth anniversary of Chhatrapati Shivaji Maharaj celebrated across Maharashtra and India."
+    },
+    {
+        "id": "event-2026-02-19-ramadan",
+        "date": "2026-02-19",
+        "name": "Ramadan (Ramzan) Fasting Begins",
+        "subLabel": "First Day of Holy Month of Fasting",
+        "dayOfWeek": "Thursday",
+        "month": 2,
+        "day": 19,
+        "category": "Islamic",
+        "religion": "Islam",
+        "icon": "🌙",
+        "isCompanyHoliday": false,
+        "type": "Islamic Observance (Working Day)",
+        "notes": "Commencement of the holy month of fasting (Roza), reflection, and Quran recitation (subject to moon sighting)."
+    },
+    {
+        "id": "event-2026-02-28",
+        "date": "2026-02-28",
+        "name": "National Science Day",
+        "subLabel": "Discovery of the Raman Effect",
+        "dayOfWeek": "Saturday",
+        "month": 2,
+        "day": 28,
+        "category": "National",
+        "religion": "National",
+        "icon": "🔬",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Commemorating Sir C.V. Raman discovery of the Raman Effect, earning the Nobel Prize in Physics."
+    },
+    {
+        "id": "event-2026-03-03",
+        "date": "2026-03-03",
+        "name": "Holika Dahan",
+        "subLabel": "Choti Holi / Bonfire of Triumph",
+        "dayOfWeek": "Tuesday",
+        "month": 3,
+        "day": 3,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🔥",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Ritual bonfires lit across the country symbolizing the victory of devotion and good (Bhakt Prahlad) over evil (Holika)."
+    },
+    {
+        "id": "event-2026-03-04",
+        "date": "2026-03-04",
+        "name": "Holi",
+        "subLabel": "Day 1 (Choti Holi / Holika Dahan)",
+        "dayOfWeek": "Wednesday",
+        "month": 3,
+        "day": 4,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🔥",
+        "isCompanyHoliday": true,
+        "holidayKey": "holi-day-1",
+        "type": "Official Company Holiday",
+        "notes": "Festival of colors (Day 1). Bonfire lit celebrating triumph of good over evil. Offices closed.",
+        "isGazetted": true
+    },
+    {
+        "id": "event-2026-03-05",
+        "date": "2026-03-05",
+        "name": "Holi",
+        "subLabel": "Day 2 (Rangwali Holi / Dhulandi)",
+        "dayOfWeek": "Thursday",
+        "month": 3,
+        "day": 5,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🎨",
+        "isCompanyHoliday": true,
+        "holidayKey": "holi-day-2",
+        "type": "Official Company Holiday",
+        "notes": "Main festival of colors and joyful spring celebration (Day 2). Offices closed.",
+        "isGazetted": true
+    },
+    {
+        "id": "event-2026-03-08",
+        "date": "2026-03-08",
+        "name": "International Women’s Day",
+        "subLabel": "Celebration of Women’s Achievements",
+        "dayOfWeek": "Sunday",
+        "month": 3,
+        "day": 8,
+        "category": "Cultural",
+        "religion": "Cultural",
+        "icon": "🌸",
+        "isCompanyHoliday": false,
+        "type": "Cultural Observance (Working Day)",
+        "notes": "Global celebration of the social, economic, cultural, and leadership achievements of women."
+    },
+    {
+        "id": "event-2026-03-16",
+        "date": "2026-03-16",
+        "name": "Laylat al-Qadr",
+        "subLabel": "Night of Power / Shab-e-Qadr",
+        "dayOfWeek": "Monday",
+        "month": 3,
+        "day": 16,
+        "category": "Islamic",
+        "religion": "Islam",
+        "icon": "📖",
+        "isCompanyHoliday": false,
+        "type": "Islamic Observance (Working Day)",
+        "notes": "The holiest night in the Islamic calendar, commemorating when the Holy Quran was first revealed to Prophet Muhammad."
+    },
+    {
+        "id": "event-2026-03-19",
+        "date": "2026-03-19",
+        "name": "Chaitra Navratri Begins / Ugadi / Gudi Padwa",
+        "subLabel": "Hindu Lunar New Year",
+        "dayOfWeek": "Thursday",
+        "month": 3,
+        "day": 19,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🌿",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Beginning of the 9-day Chaitra Navratri; celebrated as Gudi Padwa in Maharashtra and Ugadi in Karnataka, Andhra Pradesh, and Telangana."
+    },
+    {
+        "id": "event-2026-03-20",
+        "date": "2026-03-20",
+        "name": "Cheti Chand & Jumat-ul-Wida",
+        "subLabel": "Sindhi New Year & Last Friday of Ramadan",
+        "dayOfWeek": "Friday",
+        "month": 3,
+        "day": 20,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🕉️",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Cheti Chand celebrates the birth of Ishtadeva Uderolal (Jhulelal) for the Sindhi community; Jumat-ul-Wida marks the final Friday prayers of Ramadan."
+    },
+    {
+        "id": "event-2026-03-21",
+        "date": "2026-03-21",
+        "name": "Eid-ul-Fitr (Ramzan Id) & Jamshedi Navroz",
+        "subLabel": "Festival of Breaking Fast & Parsi Equinox New Year",
+        "dayOfWeek": "Saturday",
+        "month": 3,
+        "day": 21,
+        "category": "Islamic",
+        "religion": "Islam",
+        "icon": "🌙",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Major Islamic festival marking the end of Ramadan fasting with prayers and charity; also celebrated as Jamshedi Navroz by the Zoroastrian / Parsi community."
+    },
+    {
+        "id": "event-2026-03-23",
+        "date": "2026-03-23",
+        "name": "Shaheed Diwas (Martyrs’ Day)",
+        "subLabel": "Tribute to Bhagat Singh, Sukhdev & Rajguru",
+        "dayOfWeek": "Monday",
+        "month": 3,
+        "day": 23,
+        "category": "National",
+        "religion": "National",
+        "icon": "🇮🇳",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "National tribute honoring the supreme sacrifice of freedom fighters Bhagat Singh, Sukhdev Thapar, and Shivaram Rajguru in 1931."
+    },
+    {
+        "id": "event-2026-03-26",
+        "date": "2026-03-26",
+        "name": "Rama Navami",
+        "subLabel": "Birth of Lord Rama",
+        "dayOfWeek": "Thursday",
+        "month": 3,
+        "day": 26,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🏹",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Celebration of the birth of Lord Rama, concluding the 9-day Chaitra Navratri festival."
+    },
+    {
+        "id": "event-2026-03-29",
+        "date": "2026-03-29",
+        "name": "Palm Sunday",
+        "subLabel": "Start of Christian Holy Week",
+        "dayOfWeek": "Sunday",
+        "month": 3,
+        "day": 29,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "🌿",
+        "isCompanyHoliday": false,
+        "type": "Christian Observance (Working Day)",
+        "notes": "Commemorating the triumphant entry of Jesus Christ into Jerusalem on palm fronds."
+    },
+    {
+        "id": "event-2026-03-31",
+        "date": "2026-03-31",
+        "name": "Mahavir Jayanti",
+        "subLabel": "Birth Anniversary of Lord Mahavira",
+        "dayOfWeek": "Tuesday",
+        "month": 3,
+        "day": 31,
+        "category": "Jain",
+        "religion": "Jainism",
+        "icon": "卐",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Most auspicious festival of Jainism celebrating the birth anniversary of Lord Mahavira, the 24th Tirthankara."
+    },
+    {
+        "id": "event-2026-04-02",
+        "date": "2026-04-02",
+        "name": "Maundy Thursday & Hanuman Jayanti",
+        "subLabel": "The Last Supper & Birth of Lord Hanuman",
+        "dayOfWeek": "Thursday",
+        "month": 4,
+        "day": 2,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "✝️",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Christian commemoration of the Last Supper of Jesus Christ; also celebrated as Hanuman Jayanti (Chaitra Purnima) honoring Lord Hanuman devotion."
+    },
+    {
+        "id": "event-2026-04-03",
+        "date": "2026-04-03",
+        "name": "Good Friday",
+        "subLabel": "Crucifixion of Jesus Christ",
+        "dayOfWeek": "Friday",
+        "month": 4,
+        "day": 3,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "✝️",
+        "isCompanyHoliday": false,
+        "type": "Christian Observance (Working Day)",
+        "notes": "Solemn day commemorating the crucifixion and passion of Jesus Christ at Calvary."
+    },
+    {
+        "id": "event-2026-04-04",
+        "date": "2026-04-04",
+        "name": "Holy Saturday",
+        "subLabel": "Easter Vigil",
+        "dayOfWeek": "Saturday",
+        "month": 4,
+        "day": 4,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "🕯️",
+        "isCompanyHoliday": false,
+        "type": "Christian Observance (Working Day)",
+        "notes": "The day Jesus Christ lay in the tomb; Christian vigil anticipating the Resurrection."
+    },
+    {
+        "id": "event-2026-04-05",
+        "date": "2026-04-05",
+        "name": "Easter Sunday",
+        "subLabel": "The Resurrection of Jesus Christ",
+        "dayOfWeek": "Sunday",
+        "month": 4,
+        "day": 5,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "🕊️",
+        "isCompanyHoliday": false,
+        "type": "Christian Observance (Working Day)",
+        "notes": "Joyful celebration of the resurrection of Jesus Christ from the dead, concluding Holy Week."
+    },
+    {
+        "id": "event-2026-04-06",
+        "date": "2026-04-06",
+        "name": "Easter Monday",
+        "subLabel": "Post-Easter Celebration",
+        "dayOfWeek": "Monday",
+        "month": 4,
+        "day": 6,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "✝️",
+        "isCompanyHoliday": false,
+        "type": "Christian Observance (Working Day)",
+        "notes": "Continued Christian Easter celebrations."
+    },
+    {
+        "id": "event-2026-04-14",
+        "date": "2026-04-14",
+        "name": "Dr. B.R. Ambedkar Jayanti",
+        "subLabel": "Architect of Indian Constitution",
+        "dayOfWeek": "Tuesday",
+        "month": 4,
+        "day": 14,
+        "category": "National",
+        "religion": "National",
+        "icon": "🇮🇳",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "135th birth anniversary of Bharat Ratna Dr. Bhimrao Ramji Ambedkar, celebrating social justice and equality."
+    },
+    {
+        "id": "event-2026-04-14-vaisakhi",
+        "date": "2026-04-14",
+        "name": "Vaisakhi (Baisakhi) & Regional New Years",
+        "subLabel": "Khalsa Foundation / Puthandu / Vishu / Bohag Bihu / Pohela Boishakh",
+        "dayOfWeek": "Tuesday",
+        "month": 4,
+        "day": 14,
+        "category": "Sikh",
+        "religion": "Sikhism",
+        "icon": "🌾",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Sikh festival marking the creation of the Khalsa Panth in 1699 by Guru Gobind Singh Ji; also celebrated as Tamil New Year (Puthandu), Kerala New Year (Vishu), Assamese New Year (Bohag Bihu), and Bengali New Year (Pohela Boishakh)."
+    },
+    {
+        "id": "event-2026-04-20",
+        "date": "2026-04-20",
+        "name": "Akshaya Tritiya & Parashurama Jayanti",
+        "subLabel": "Auspicious Day of Eternal Wealth",
+        "dayOfWeek": "Monday",
+        "month": 4,
+        "day": 20,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🪙",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Auspicious day in Hindu and Jain traditions signifying eternal prosperity, buying gold, and starting new ventures; also birth anniversary of Lord Parashurama."
+    },
+    {
+        "id": "event-2026-04-21",
+        "date": "2026-04-21",
+        "name": "National Civil Services Day",
+        "subLabel": "Honouring Public Servants",
+        "dayOfWeek": "Tuesday",
+        "month": 4,
+        "day": 21,
+        "category": "National",
+        "religion": "National",
+        "icon": "🏛️",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Honoring civil servants and administrative officers who steer the nation governance."
+    },
+    {
+        "id": "event-2026-04-24",
+        "date": "2026-04-24",
+        "name": "National Panchayati Raj Day",
+        "subLabel": "Grassroots Democracy Celebration",
+        "dayOfWeek": "Friday",
+        "month": 4,
+        "day": 24,
+        "category": "National",
+        "religion": "National",
+        "icon": "🗳️",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Commemorating the 73rd Constitutional Amendment Act (1992) instituting local self-governance."
+    },
+    {
+        "id": "event-2026-05-01",
+        "date": "2026-05-01",
+        "name": "Buddha Purnima (Vesak)",
+        "subLabel": "Enlightenment & Parinirvana of Lord Buddha",
+        "dayOfWeek": "Friday",
+        "month": 5,
+        "day": 1,
+        "category": "Buddhist",
+        "religion": "Buddhism",
+        "icon": "☸️",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Sacred full moon day commemorating the birth, supreme enlightenment, and Mahaparinirvana of Gautama Buddha; also International Workers Day (Maharashtra Day & Gujarat Day)."
+    },
+    {
+        "id": "event-2026-05-07",
+        "date": "2026-05-07",
+        "name": "Rabindranath Tagore Jayanti",
+        "subLabel": "Nobel Laureate Birth Anniversary",
+        "dayOfWeek": "Thursday",
+        "month": 5,
+        "day": 7,
+        "category": "Cultural",
+        "religion": "Cultural",
+        "icon": "📜",
+        "isCompanyHoliday": false,
+        "type": "Cultural Observance (Working Day)",
+        "notes": "Birth anniversary of poet, philosopher, and Nobel laureate Rabindranath Tagore, author of the Indian national anthem."
+    },
+    {
+        "id": "event-2026-05-11",
+        "date": "2026-05-11",
+        "name": "National Technology Day",
+        "subLabel": "Pokhran-II Commemoration",
+        "dayOfWeek": "Monday",
+        "month": 5,
+        "day": 11,
+        "category": "National",
+        "religion": "National",
+        "icon": "🚀",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Commemorating Indian technological and scientific achievements, marking the 1998 Pokhran nuclear tests."
+    },
+    {
+        "id": "event-2026-05-14",
+        "date": "2026-05-14",
+        "name": "Ascension Day",
+        "subLabel": "Ascension of Jesus into Heaven",
+        "dayOfWeek": "Thursday",
+        "month": 5,
+        "day": 14,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "✝️",
+        "isCompanyHoliday": false,
+        "type": "Christian Observance (Working Day)",
+        "notes": "Christian holy day marking the 40th day after Easter, commemorating the ascension of Jesus Christ into heaven."
+    },
+    {
+        "id": "event-2026-05-24",
+        "date": "2026-05-24",
+        "name": "Pentecost (Whit Sunday)",
+        "subLabel": "Descent of the Holy Spirit",
+        "dayOfWeek": "Sunday",
+        "month": 5,
+        "day": 24,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "🕊️",
+        "isCompanyHoliday": false,
+        "type": "Christian Observance (Working Day)",
+        "notes": "Christian celebration commemorating the descent of the Holy Spirit upon the Apostles 50 days after Easter."
+    },
+    {
+        "id": "event-2026-05-26",
+        "date": "2026-05-26",
+        "name": "Ganga Dussehra",
+        "subLabel": "Descent of Sacred River Ganga",
+        "dayOfWeek": "Tuesday",
+        "month": 5,
+        "day": 26,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🌊",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Auspicious day celebrating the descent of River Ganga from heaven to Earth through King Bhagiratha penance."
+    },
+    {
+        "id": "event-2026-05-27",
+        "date": "2026-05-27",
+        "name": "Eid al-Adha (Bakrid)",
+        "subLabel": "Feast of the Sacrifice",
+        "dayOfWeek": "Wednesday",
+        "month": 5,
+        "day": 27,
+        "category": "Islamic",
+        "religion": "Islam",
+        "icon": "☪️",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Major Islamic festival honoring Prophet Ibrahim willingness to sacrifice his son in obedience to God. Celebrated with prayers and charity."
+    },
+    {
+        "id": "event-2026-05-28",
+        "date": "2026-05-28",
+        "name": "Eid al-Adha (Day 2)",
+        "subLabel": "Tashreeq Days of Bakrid",
+        "dayOfWeek": "Thursday",
+        "month": 5,
+        "day": 28,
+        "category": "Islamic",
+        "religion": "Islam",
+        "icon": "🌙",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Continued celebrations and family gatherings of Eid al-Adha across India."
+    },
+    {
+        "id": "event-2026-06-05",
+        "date": "2026-06-05",
+        "name": "World Environment Day",
+        "subLabel": "Ecological Awareness & Sustainability",
+        "dayOfWeek": "Friday",
+        "month": 6,
+        "day": 5,
+        "category": "Cultural",
+        "religion": "Cultural",
+        "icon": "🌿",
+        "isCompanyHoliday": false,
+        "type": "Global Observance (Working Day)",
+        "notes": "Global movement for environmental protection and sustainable industrial practices."
+    },
+    {
+        "id": "event-2026-06-16",
+        "date": "2026-06-16",
+        "name": "Islamic New Year (1448 AH) & Martyrdom of Guru Arjan Dev Ji",
+        "subLabel": "1st Muharram / 5th Sikh Guru Martyrdom",
+        "dayOfWeek": "Tuesday",
+        "month": 6,
+        "day": 16,
+        "category": "Islamic",
+        "religion": "Islam",
+        "icon": "☪️",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Commencement of the Islamic Lunar New Year (Hijri 1448); also solemn Sikh observance of the martyrdom of Guru Arjan Dev Ji."
+    },
+    {
+        "id": "event-2026-06-21",
+        "date": "2026-06-21",
+        "name": "International Day of Yoga & Summer Solstice",
+        "subLabel": "Wellness & Longest Day of the Year",
+        "dayOfWeek": "Sunday",
+        "month": 6,
+        "day": 21,
+        "category": "National",
+        "religion": "National",
+        "icon": "🧘",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Global celebration of Yoga, founded by India and recognized by the United Nations."
+    },
+    {
+        "id": "event-2026-06-26",
+        "date": "2026-06-26",
+        "name": "Muharram (Day of Ashura)",
+        "subLabel": "10th Day of Muharram",
+        "dayOfWeek": "Friday",
+        "month": 6,
+        "day": 26,
+        "category": "Islamic",
+        "religion": "Islam",
+        "icon": "☪️",
+        "isCompanyHoliday": false,
+        "type": "Islamic Observance (Working Day)",
+        "notes": "Solemn day of remembrance commemorating the martyrdom of Imam Hussain ibn Ali, grandson of Prophet Muhammad, at the Battle of Karbala."
+    },
+    {
+        "id": "event-2026-07-01",
+        "date": "2026-07-01",
+        "name": "National Doctors’ Day",
+        "subLabel": "Honouring Healthcare Professionals",
+        "dayOfWeek": "Wednesday",
+        "month": 7,
+        "day": 1,
+        "category": "National",
+        "religion": "National",
+        "icon": "🩺",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Honoring legendary physician and Bharat Ratna Dr. Bidhan Chandra Roy and all medical workers."
+    },
+    {
+        "id": "event-2026-07-03",
+        "date": "2026-07-03",
+        "name": "Feast of St. Thomas the Apostle",
+        "subLabel": "Patron of Indian Christians",
+        "dayOfWeek": "Friday",
+        "month": 7,
+        "day": 3,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "✝️",
+        "isCompanyHoliday": false,
+        "type": "Christian Observance (Working Day)",
+        "notes": "Honoring St. Thomas the Apostle, who arrived in Kerala in 52 AD and brought Christianity to India."
+    },
+    {
+        "id": "event-2026-07-16",
+        "date": "2026-07-16",
+        "name": "Jagannath Puri Rath Yatra",
+        "subLabel": "Chariot Festival of Lord Jagannath",
+        "dayOfWeek": "Thursday",
+        "month": 7,
+        "day": 16,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🛕",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "World-famous annual chariot procession of Lord Jagannath, Lord Balabhadra, and Devi Subhadra in Puri, Odisha."
+    },
+    {
+        "id": "event-2026-07-26",
+        "date": "2026-07-26",
+        "name": "Kargil Vijay Diwas",
+        "subLabel": "Victory of Operation Vijay (1999)",
+        "dayOfWeek": "Sunday",
+        "month": 7,
+        "day": 26,
+        "category": "National",
+        "religion": "National",
+        "icon": "🇮🇳",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Commemorating the victory of the Indian Armed Forces in the 1999 Kargil War and honoring the fallen heroes."
+    },
+    {
+        "id": "event-2026-07-29",
+        "date": "2026-07-29",
+        "name": "Guru Purnima & Asalha Puja (Dharma Day)",
+        "subLabel": "Reverence to Spiritual Masters & First Sermon of Buddha",
+        "dayOfWeek": "Wednesday",
+        "month": 7,
+        "day": 29,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🕉️",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Sacred full moon day dedicated to expressing gratitude to spiritual and academic gurus; also celebrated as Asalha Puja by Buddhists commemorating Gautama Buddha first sermon at Sarnath."
+    },
+    {
+        "id": "event-2026-08-15",
+        "date": "2026-08-15",
+        "name": "Independence Day",
+        "subLabel": "80th Indian Independence Day",
+        "dayOfWeek": "Saturday",
+        "month": 8,
+        "day": 15,
+        "category": "National",
+        "religion": "National",
+        "icon": "🇮🇳",
+        "isCompanyHoliday": true,
+        "holidayKey": "independence-day",
+        "type": "Official Company Holiday",
+        "notes": "Indian national independence from colonial rule in 1947. Operations closed.",
+        "isGazetted": true
+    },
+    {
+        "id": "event-2026-08-15-mary",
+        "date": "2026-08-15",
+        "name": "Assumption of Mary & Pateti (Parsi Eve)",
+        "subLabel": "Christian Feast & Zoroastrian Repentance",
+        "dayOfWeek": "Saturday",
+        "month": 8,
+        "day": 15,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "✝️",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Christian celebration of the bodily assumption of Virgin Mary; also observed as Pateti by Parsis (day of introspection before New Year)."
+    },
+    {
+        "id": "event-2026-08-16",
+        "date": "2026-08-16",
+        "name": "Parsi New Year (Shahenshahi Navroz)",
+        "subLabel": "Zoroastrian Calendar New Year",
+        "dayOfWeek": "Sunday",
+        "month": 8,
+        "day": 16,
+        "category": "Parsi",
+        "religion": "Zoroastrianism",
+        "icon": "☀️",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Joyful celebration of the New Year by the Parsi / Zoroastrian community in India according to the Shahenshahi calendar."
+    },
+    {
+        "id": "event-2026-08-17",
+        "date": "2026-08-17",
+        "name": "Nag Panchami",
+        "subLabel": "Traditional Worship of Serpent Deities",
+        "dayOfWeek": "Monday",
+        "month": 8,
+        "day": 17,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🐍",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Traditional Hindu festival of reverence to serpent deities (Nagas) for protection and ecological balance."
+    },
+    {
+        "id": "event-2026-08-26",
+        "date": "2026-08-26",
+        "name": "Onam (Thiruvonam) & Milad-un-Nabi (Eid-e-Milad)",
+        "subLabel": "Kerala Harvest Festival & Birth of Prophet Muhammad",
+        "dayOfWeek": "Wednesday",
+        "month": 8,
+        "day": 26,
+        "category": "Cultural",
+        "religion": "Cultural",
+        "icon": "🌾",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Thiruvonam is the premier cultural harvest celebration of Kerala welcoming King Mahabali with floral carpets (Pookkalam); Milad-un-Nabi commemorates the birth and life of Prophet Muhammad."
+    },
+    {
+        "id": "event-2026-08-28",
+        "date": "2026-08-28",
+        "name": "Raksha Bandhan",
+        "subLabel": "Rakhi Purnima",
+        "dayOfWeek": "Friday",
+        "month": 8,
+        "day": 28,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🧵",
+        "isCompanyHoliday": true,
+        "holidayKey": "raksha-bandhan",
+        "type": "Official Company Holiday",
+        "notes": "Sacred celebration of brother-sister bond. Offices and operations closed.",
+        "isGazetted": false
+    },
+    {
+        "id": "event-2026-08-29",
+        "date": "2026-08-29",
+        "name": "National Sports Day",
+        "subLabel": "Major Dhyan Chand Jayanti",
+        "dayOfWeek": "Saturday",
+        "month": 8,
+        "day": 29,
+        "category": "National",
+        "religion": "National",
+        "icon": "🏑",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Birth anniversary of hockey wizard Major Dhyan Chand, celebrating sportsmanship and physical fitness."
+    },
+    {
+        "id": "event-2026-08-30",
+        "date": "2026-08-30",
+        "name": "Kajari Teej",
+        "subLabel": "Monsoon Celebration for Married Women",
+        "dayOfWeek": "Sunday",
+        "month": 8,
+        "day": 30,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🌿",
+        "isCompanyHoliday": false,
+        "type": "Cultural Festival (Working Day)",
+        "notes": "Traditional monsoon festival in Rajasthan, UP, and MP celebrated by women with folk songs and swings."
+    },
+    {
+        "id": "event-2026-09-01",
+        "date": "2026-09-01",
+        "name": "First Prakash Utsav Sri Guru Granth Sahib Ji",
+        "subLabel": "Installation of Adi Granth in Golden Temple (1604)",
+        "dayOfWeek": "Tuesday",
+        "month": 9,
+        "day": 1,
+        "category": "Sikh",
+        "religion": "Sikhism",
+        "icon": "ੴ",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Commemorating the first installation of Sri Guru Granth Sahib Ji at Harimandir Sahib, Amritsar in 1604."
+    },
+    {
+        "id": "event-2026-09-04",
+        "date": "2026-09-04",
+        "name": "Janmashtami",
+        "subLabel": "Krishna Janmashtami / Gokulashtami",
+        "dayOfWeek": "Friday",
+        "month": 9,
+        "day": 4,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🦚",
+        "isCompanyHoliday": true,
+        "holidayKey": "janmashtami",
+        "type": "Official Company Holiday",
+        "notes": "Celebration of the birth of Lord Krishna. Offices and operations closed.",
+        "isGazetted": false
+    },
+    {
+        "id": "event-2026-09-05",
+        "date": "2026-09-05",
+        "name": "Teachers’ Day & Dahi Handi",
+        "subLabel": "Dr. S. Radhakrishnan Jayanti & Festive Youth Celebrations",
+        "dayOfWeek": "Saturday",
+        "month": 9,
+        "day": 5,
+        "category": "National",
+        "religion": "National",
+        "icon": "👨‍🏫",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Teachers Day honoring educators across India; Dahi Handi human pyramids celebrating Lord Krishna playful childhood."
+    },
+    {
+        "id": "event-2026-09-08",
+        "date": "2026-09-08",
+        "name": "Paryushan Parva Begins (Shwetambar)",
+        "subLabel": "8 Days of Jain Fasting & Spiritual Purification",
+        "dayOfWeek": "Tuesday",
+        "month": 9,
+        "day": 8,
+        "category": "Jain",
+        "religion": "Jainism",
+        "icon": "卐",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Commencement of the 8-day Paryushan festival of self-discipline, meditation, and fasting for Shwetambar Jains."
+    },
+    {
+        "id": "event-2026-09-12",
+        "date": "2026-09-12",
+        "name": "Samvatsari (Michhami Dukkadam)",
+        "subLabel": "Jain Day of Universal Forgiveness",
+        "dayOfWeek": "Saturday",
+        "month": 9,
+        "day": 12,
+        "category": "Jain",
+        "religion": "Jainism",
+        "icon": "🙏",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Holier day of the Jain calendar where people ask for forgiveness from all living beings saying \"Michhami Dukkadam\"."
+    },
+    {
+        "id": "event-2026-09-14",
+        "date": "2026-09-14",
+        "name": "Ganesh Chaturthi & Hindi Diwas",
+        "subLabel": "Vinayaka Chavithi & National Language Celebration",
+        "dayOfWeek": "Monday",
+        "month": 9,
+        "day": 14,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🐘",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Arrival of Lord Ganesha, remover of obstacles; Hindi Diwas marks adoption of Hindi as an official language in 1949."
+    },
+    {
+        "id": "event-2026-09-15",
+        "date": "2026-09-15",
+        "name": "Engineers’ Day",
+        "subLabel": "Sir M. Visvesvaraya Jayanti",
+        "dayOfWeek": "Tuesday",
+        "month": 9,
+        "day": 15,
+        "category": "National",
+        "religion": "National",
+        "icon": "⚙️",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Honoring engineering excellence on the birth anniversary of Bharat Ratna Sir Mokshagundam Visvesvaraya."
+    },
+    {
+        "id": "event-2026-09-16",
+        "date": "2026-09-16",
+        "name": "Das Lakshan Parva Begins (Digambar)",
+        "subLabel": "10 Cardinal Virtues of Jainism",
+        "dayOfWeek": "Wednesday",
+        "month": 9,
+        "day": 16,
+        "category": "Jain",
+        "religion": "Jainism",
+        "icon": "卐",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "10-day festival for Digambar Jains focused on the 10 supreme virtues (dharma) including forgiveness, humility, and truth."
+    },
+    {
+        "id": "event-2026-09-21",
+        "date": "2026-09-21",
+        "name": "International Day of Peace",
+        "subLabel": "Global Ceasefire & Harmony",
+        "dayOfWeek": "Monday",
+        "month": 9,
+        "day": 21,
+        "category": "Cultural",
+        "religion": "Cultural",
+        "icon": "🕊️",
+        "isCompanyHoliday": false,
+        "type": "Global Observance (Working Day)",
+        "notes": "Global day devoted to strengthening the ideals of peace and non-violence."
+    },
+    {
+        "id": "event-2026-09-24",
+        "date": "2026-09-24",
+        "name": "Anant Chaturdashi (Ganesh Visarjan)",
+        "subLabel": "Immersion of Ganesha Idols",
+        "dayOfWeek": "Thursday",
+        "month": 9,
+        "day": 24,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🥁",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Grand immersion processions of Lord Ganesha idols in water bodies marking the completion of the 10-day Ganeshotsav."
+    },
+    {
+        "id": "event-2026-09-26",
+        "date": "2026-09-26",
+        "name": "Pitru Paksha Begins",
+        "subLabel": "16 Lunar Days of Ancestral Homage",
+        "dayOfWeek": "Saturday",
+        "month": 9,
+        "day": 26,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🪔",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Period in Hindu calendar dedicated to honoring ancestors through Tarpan and Shraddha ceremonies."
+    },
+    {
+        "id": "event-2026-09-27",
+        "date": "2026-09-27",
+        "name": "Kshamavani",
+        "subLabel": "Digambar Day of Forgiveness",
+        "dayOfWeek": "Sunday",
+        "month": 9,
+        "day": 27,
+        "category": "Jain",
+        "religion": "Jainism",
+        "icon": "🙏",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Digambar Jain community day of universal forgiveness and reconciliation."
+    },
+    {
+        "id": "event-2026-10-02",
+        "date": "2026-10-02",
+        "name": "Mahatma Gandhi Jayanti",
+        "subLabel": "International Day of Non-Violence",
+        "dayOfWeek": "Friday",
+        "month": 10,
+        "day": 2,
+        "category": "National",
+        "religion": "National",
+        "icon": "🇮🇳",
+        "isCompanyHoliday": true,
+        "holidayKey": "mahatma-gandhi-jayanti",
+        "type": "Official Company Holiday",
+        "notes": "Birth anniversaries of Mahatma Gandhi and Lal Bahadur Shastri. Offices closed.",
+        "isGazetted": true
+    },
+    {
+        "id": "event-2026-10-08",
+        "date": "2026-10-08",
+        "name": "Indian Air Force Day",
+        "subLabel": "Anniversary of IAF Establishment",
+        "dayOfWeek": "Thursday",
+        "month": 10,
+        "day": 8,
+        "category": "National",
+        "religion": "National",
+        "icon": "✈️",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Honoring the guardians of Indian skies and their valiant service since 1932."
+    },
+    {
+        "id": "event-2026-10-10",
+        "date": "2026-10-10",
+        "name": "Mahalaya / Sarva Pitru Amavasya",
+        "subLabel": "Conclusion of Pitru Paksha & Invocation of Durga",
+        "dayOfWeek": "Saturday",
+        "month": 10,
+        "day": 10,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🔔",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Final day of Pitru Paksha for ancestral offerings; marks the arrival of Goddess Durga on Earth in Bengal and Eastern India."
+    },
+    {
+        "id": "event-2026-10-11",
+        "date": "2026-10-11",
+        "name": "Sharad Navratri Begins / Ghatasthapana",
+        "subLabel": "First Day of 9-Day Festival of Goddess Durga",
+        "dayOfWeek": "Sunday",
+        "month": 10,
+        "day": 11,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🔱",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Auspicious commencement of Sharad Navratri with Ghatasthapana, celebrating the 9 forms of Navadurga with Garba and fasting."
+    },
+    {
+        "id": "event-2026-10-18",
+        "date": "2026-10-18",
+        "name": "Durga Maha Ashtami",
+        "subLabel": "8th Day of Navratri / Sandhi Puja",
+        "dayOfWeek": "Sunday",
+        "month": 10,
+        "day": 18,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🔱",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "The climax of Durga Puja and Navratri worshiping Goddess Mahagauri with Kanya Pujan and Sandhi Puja."
+    },
+    {
+        "id": "event-2026-10-19",
+        "date": "2026-10-19",
+        "name": "Maha Navami (Ayudha Puja)",
+        "subLabel": "9th Day of Navratri / Blessing of Machinery & Tools",
+        "dayOfWeek": "Monday",
+        "month": 10,
+        "day": 19,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🛠️",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Worship of weapons, instruments, machinery, vehicles, and tools (Ayudha Puja) signifying respect for tools of work."
+    },
+    {
+        "id": "event-2026-10-20",
+        "date": "2026-10-20",
+        "name": "Dussehra",
+        "subLabel": "Vijayadashami / Dashami",
+        "dayOfWeek": "Tuesday",
+        "month": 10,
+        "day": 20,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🏹",
+        "isCompanyHoliday": true,
+        "holidayKey": "dussehra",
+        "type": "Official Company Holiday",
+        "notes": "Victory of good over evil and immersion of Durga idols. Offices closed.",
+        "isGazetted": true
+    },
+    {
+        "id": "event-2026-10-25",
+        "date": "2026-10-25",
+        "name": "Sharad Purnima & Maharishi Valmiki Jayanti",
+        "subLabel": "Kojagiri Lakshmi Puja & Adi Kavi Jayanti",
+        "dayOfWeek": "Sunday",
+        "month": 10,
+        "day": 25,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🌕",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Harvest full moon night of divine nectar (Kheer under moonlight); also celebrating Maharishi Valmiki, composer of the Ramayana."
+    },
+    {
+        "id": "event-2026-10-28",
+        "date": "2026-10-28",
+        "name": "Guru Ram Das Ji Jayanti",
+        "subLabel": "Birth of 4th Sikh Guru / Founder of Amritsar",
+        "dayOfWeek": "Wednesday",
+        "month": 10,
+        "day": 28,
+        "category": "Sikh",
+        "religion": "Sikhism",
+        "icon": "ੴ",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Prakash Purab of Guru Ram Das Ji, founder of the holy city of Amritsar and composer of Lavan hymns."
+    },
+    {
+        "id": "event-2026-10-29",
+        "date": "2026-10-29",
+        "name": "Karwa Chauth",
+        "subLabel": "Nirjala Fast of Married Women",
+        "dayOfWeek": "Thursday",
+        "month": 10,
+        "day": 29,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🌕",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Sacred fast without food or water observed by married women from sunrise to moonrise for the longevity and health of their husbands."
+    },
+    {
+        "id": "event-2026-10-31",
+        "date": "2026-10-31",
+        "name": "Rashtriya Ekta Diwas (National Unity Day)",
+        "subLabel": "Sardar Vallabhbhai Patel Jayanti",
+        "dayOfWeek": "Saturday",
+        "month": 10,
+        "day": 31,
+        "category": "National",
+        "religion": "National",
+        "icon": "🇮🇳",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Birth anniversary of the Iron Man of India, Sardar Vallabhbhai Patel, celebrating national unity and integration."
+    },
+    {
+        "id": "event-2026-11-01",
+        "date": "2026-11-01",
+        "name": "All Saints’ Day & Kannada Rajyotsava",
+        "subLabel": "Honouring All Saints / Karnataka State Formation",
+        "dayOfWeek": "Sunday",
+        "month": 11,
+        "day": 1,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "✝️",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Christian solemnity honoring all saints known and unknown; also celebrated as Kannada Rajyotsava and Haryana Day."
+    },
+    {
+        "id": "event-2026-11-02",
+        "date": "2026-11-02",
+        "name": "All Souls’ Day & Ahoi Ashtami",
+        "subLabel": "Prayer for Departed Souls & Mothers Fast for Children",
+        "dayOfWeek": "Monday",
+        "month": 11,
+        "day": 2,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "🕯️",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Christian day of prayer for departed souls; Ahoi Ashtami fast observed by mothers for their children well-being."
+    },
+    {
+        "id": "event-2026-11-06",
+        "date": "2026-11-06",
+        "name": "Dhanteras (Dhanatrayodashi)",
+        "subLabel": "Worship of Lord Dhanvantari & Purchasing Auspicious Metals",
+        "dayOfWeek": "Friday",
+        "month": 11,
+        "day": 6,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🪙",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "First day of the 5-day Diwali festivities. People worship Lord Dhanvantari (god of health and medicine) and purchase gold, silver, or utensils."
+    },
+    {
+        "id": "event-2026-11-07",
+        "date": "2026-11-07",
+        "name": "Naraka Chaturdashi (Choti Diwali)",
+        "subLabel": "Kali Chaudas / Roop Chaudas",
+        "dayOfWeek": "Saturday",
+        "month": 11,
+        "day": 7,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🪔",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Second day of Diwali festivities commemorating the slaying of demon Narakasura by Lord Krishna and Satyabhama."
+    },
+    {
+        "id": "event-2026-11-08",
+        "date": "2026-11-08",
+        "name": "Diwali (Deepavali)",
+        "subLabel": "Lakshmi Puja / Festival of Lights",
+        "dayOfWeek": "Sunday",
+        "month": 11,
+        "day": 8,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🪔",
+        "isCompanyHoliday": true,
+        "holidayKey": "diwali",
+        "type": "Official Company Holiday",
+        "notes": "Main Diwali festival of lights and prosperity with Lakshmi Puja. Offices closed.",
+        "isGazetted": true
+    },
+    {
+        "id": "event-2026-11-08-bandi",
+        "date": "2026-11-08",
+        "name": "Bandi Chhor Diwas & Mahavira Nirvana",
+        "subLabel": "Sikh Liberation Festival & Jain Tirthankara Liberation",
+        "dayOfWeek": "Sunday",
+        "month": 11,
+        "day": 8,
+        "category": "Sikh",
+        "religion": "Sikhism",
+        "icon": "ੴ",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Sikh festival marking the release of Guru Hargobind Ji and 52 Hindu kings from Gwalior Fort; also celebrated as Lord Mahavira attainment of Nirvana in Jainism."
+    },
+    {
+        "id": "event-2026-11-09",
+        "date": "2026-11-09",
+        "name": "Govardhan Puja",
+        "subLabel": "Annakut / Gujarati New Year",
+        "dayOfWeek": "Monday",
+        "month": 11,
+        "day": 9,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🏔️",
+        "isCompanyHoliday": true,
+        "holidayKey": "govardhan-puja",
+        "type": "Official Company Holiday",
+        "notes": "Honoring Lord Krishna lifting Mount Govardhan. Offices closed.",
+        "isGazetted": false
+    },
+    {
+        "id": "event-2026-11-10",
+        "date": "2026-11-10",
+        "name": "Holiday on Occasion of Festival",
+        "subLabel": "Diwali Festive Break",
+        "dayOfWeek": "Tuesday",
+        "month": 11,
+        "day": 10,
+        "category": "Company",
+        "religion": "Cultural",
+        "icon": "✨",
+        "isCompanyHoliday": true,
+        "holidayKey": "festival-holiday",
+        "type": "Official Company Holiday",
+        "notes": "Special holiday granted by Reach International. Offices closed.",
+        "isGazetted": false
+    },
+    {
+        "id": "event-2026-11-11",
+        "date": "2026-11-11",
+        "name": "Bhai Dooj",
+        "subLabel": "Yama Dwitiya / Bhratri Dwitiya",
+        "dayOfWeek": "Wednesday",
+        "month": 11,
+        "day": 11,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🌸",
+        "isCompanyHoliday": true,
+        "holidayKey": "bhai-dooj",
+        "type": "Official Company Holiday",
+        "notes": "Celebration of brother-sister affection concluding Diwali festivities. Offices closed.",
+        "isGazetted": false
+    },
+    {
+        "id": "event-2026-11-11-edu",
+        "date": "2026-11-11",
+        "name": "National Education Day",
+        "subLabel": "Maulana Abul Kalam Azad Jayanti",
+        "dayOfWeek": "Wednesday",
+        "month": 11,
+        "day": 11,
+        "category": "National",
+        "religion": "National",
+        "icon": "📚",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Birth anniversary of India first Minister of Education, Maulana Abul Kalam Azad."
+    },
+    {
+        "id": "event-2026-11-14",
+        "date": "2026-11-14",
+        "name": "Children’s Day & Chhath Puja (Nahay Khay)",
+        "subLabel": "Bal Diwas (Nehru Jayanti) & Start of Chhath Puja",
+        "dayOfWeek": "Saturday",
+        "month": 11,
+        "day": 14,
+        "category": "National",
+        "religion": "National",
+        "icon": "🎈",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Birth anniversary of Pt. Jawaharlal Nehru celebrated as Children Day; also marks Day 1 of Chhath Puja (Nahay Khay ritual bathing and sacred meal)."
+    },
+    {
+        "id": "event-2026-11-15",
+        "date": "2026-11-15",
+        "name": "Chhath Puja (Sandhya Arghya)",
+        "subLabel": "Surya Shashthi / Evening Sun Offerings on Riverbanks",
+        "dayOfWeek": "Sunday",
+        "month": 11,
+        "day": 15,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "☀️",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "The main day of Chhath Puja where devotees stand waist-deep in rivers and ponds offering Arghya to the setting Sun and Chhathi Maiya."
+    },
+    {
+        "id": "event-2026-11-16",
+        "date": "2026-11-16",
+        "name": "Chhath Puja (Usha Arghya / Paran)",
+        "subLabel": "Morning Offerings to Rising Sun & Fast Conclusion",
+        "dayOfWeek": "Monday",
+        "month": 11,
+        "day": 16,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🌅",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Offerings to the rising Sun at dawn, followed by breaking the 36-hour waterless fast with sacred Prasad (Thekua)."
+    },
+    {
+        "id": "event-2026-11-20",
+        "date": "2026-11-20",
+        "name": "Tulsi Vivah",
+        "subLabel": "Ceremonial Marriage of Tulsi with Lord Shaligram",
+        "dayOfWeek": "Friday",
+        "month": 11,
+        "day": 20,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "🌿",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Ceremonial marriage of the holy Tulsi plant with Lord Vishnu (Shaligram), marking the opening of the Hindu wedding season."
+    },
+    {
+        "id": "event-2026-11-24",
+        "date": "2026-11-24",
+        "name": "Guru Nanak Jayanti (Gurpurab) & Dev Deepawali",
+        "subLabel": "557th Prakash Parv of Guru Nanak Dev Ji / Kartik Purnima",
+        "dayOfWeek": "Tuesday",
+        "month": 11,
+        "day": 24,
+        "category": "Sikh",
+        "religion": "Sikhism",
+        "icon": "ੴ",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Birth celebration of Guru Nanak Dev Ji, founder of Sikhism; celebrated with Nagar Kirtan and Langar; also Dev Deepawali in Varanasi where millions of lamps illuminate the ghats."
+    },
+    {
+        "id": "event-2026-11-26",
+        "date": "2026-11-26",
+        "name": "Constitution Day (Samvidhan Diwas)",
+        "subLabel": "Adoption of the Constitution of India in 1949",
+        "dayOfWeek": "Thursday",
+        "month": 11,
+        "day": 26,
+        "category": "National",
+        "religion": "National",
+        "icon": "🇮🇳",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Commemorating the adoption of the Constitution of India on November 26, 1949 by the Constituent Assembly."
+    },
+    {
+        "id": "event-2026-12-01",
+        "date": "2026-12-01",
+        "name": "World AIDS Day",
+        "subLabel": "Global Health Awareness",
+        "dayOfWeek": "Tuesday",
+        "month": 12,
+        "day": 1,
+        "category": "Cultural",
+        "religion": "Cultural",
+        "icon": "🎗️",
+        "isCompanyHoliday": false,
+        "type": "Global Observance (Working Day)",
+        "notes": "Global public health day uniting people in the fight against HIV/AIDS and showing solidarity."
+    },
+    {
+        "id": "event-2026-12-03",
+        "date": "2026-12-03",
+        "name": "Feast of St. Francis Xavier",
+        "subLabel": "Patron Saint of Goa (Goencho Saib)",
+        "dayOfWeek": "Thursday",
+        "month": 12,
+        "day": 3,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "✝️",
+        "isCompanyHoliday": false,
+        "type": "Christian Observance (Working Day)",
+        "notes": "Grand feast celebrated at the Basilica of Bom Jesus in Old Goa honoring St. Francis Xavier."
+    },
+    {
+        "id": "event-2026-12-04",
+        "date": "2026-12-04",
+        "name": "Indian Navy Day",
+        "subLabel": "Operation Trident Commemoration (1971)",
+        "dayOfWeek": "Friday",
+        "month": 12,
+        "day": 4,
+        "category": "National",
+        "religion": "National",
+        "icon": "⚓",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Recognizing the achievements and supreme maritime role of the Indian Naval Force."
+    },
+    {
+        "id": "event-2026-12-07",
+        "date": "2026-12-07",
+        "name": "Armed Forces Flag Day",
+        "subLabel": "Welfare of Military Veterans & Martyrs",
+        "dayOfWeek": "Monday",
+        "month": 12,
+        "day": 7,
+        "category": "National",
+        "religion": "National",
+        "icon": "🇮🇳",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Dedicated to collecting funds for the welfare of Armed Forces personnel and honoring those in uniform."
+    },
+    {
+        "id": "event-2026-12-10",
+        "date": "2026-12-10",
+        "name": "Human Rights Day",
+        "subLabel": "Universal Declaration of Human Rights",
+        "dayOfWeek": "Thursday",
+        "month": 12,
+        "day": 10,
+        "category": "Cultural",
+        "religion": "Cultural",
+        "icon": "🕊️",
+        "isCompanyHoliday": false,
+        "type": "Global Observance (Working Day)",
+        "notes": "Commemorating the adoption of the Universal Declaration of Human Rights by the UN General Assembly in 1948."
+    },
+    {
+        "id": "event-2026-12-14",
+        "date": "2026-12-14",
+        "name": "National Energy Conservation Day",
+        "subLabel": "Energy Efficiency & Climate Responsibility",
+        "dayOfWeek": "Monday",
+        "month": 12,
+        "day": 14,
+        "category": "National",
+        "religion": "National",
+        "icon": "⚡",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Promoting energy efficiency, renewable power, and conservation across industries and institutions."
+    },
+    {
+        "id": "event-2026-12-20",
+        "date": "2026-12-20",
+        "name": "Gita Jayanti / Mokshada Ekadashi",
+        "subLabel": "Spoken Word of the Bhagavad Gita at Kurukshetra",
+        "dayOfWeek": "Sunday",
+        "month": 12,
+        "day": 20,
+        "category": "Hindu",
+        "religion": "Hinduism",
+        "icon": "📖",
+        "isCompanyHoliday": false,
+        "type": "Religious Festival (Working Day)",
+        "notes": "Auspicious day when Lord Krishna delivered the sacred message of the Bhagavad Gita to Arjuna at Kurukshetra."
+    },
+    {
+        "id": "event-2026-12-22",
+        "date": "2026-12-22",
+        "name": "National Mathematics Day & Winter Solstice",
+        "subLabel": "Srinivasa Ramanujan Jayanti & Shortest Day",
+        "dayOfWeek": "Tuesday",
+        "month": 12,
+        "day": 22,
+        "category": "National",
+        "religion": "National",
+        "icon": "📐",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Celebrating the birth anniversary of Indian mathematical genius Srinivasa Ramanujan; also astronomical Winter Solstice."
+    },
+    {
+        "id": "event-2026-12-23",
+        "date": "2026-12-23",
+        "name": "Kisan Diwas (National Farmers’ Day)",
+        "subLabel": "Chaudhary Charan Singh Jayanti",
+        "dayOfWeek": "Wednesday",
+        "month": 12,
+        "day": 23,
+        "category": "National",
+        "religion": "National",
+        "icon": "🌾",
+        "isCompanyHoliday": false,
+        "type": "National Observance (Working Day)",
+        "notes": "Honoring India farmers and their agricultural contributions to the nation economy."
+    },
+    {
+        "id": "event-2026-12-24",
+        "date": "2026-12-24",
+        "name": "Christmas Eve",
+        "subLabel": "Eve of the Nativity of Jesus Christ",
+        "dayOfWeek": "Thursday",
+        "month": 12,
+        "day": 24,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "🎄",
+        "isCompanyHoliday": false,
+        "type": "Christian Observance (Working Day)",
+        "notes": "Eve of Christmas celebrated with evening carols, midnight mass, and family gatherings."
+    },
+    {
+        "id": "event-2026-12-25",
+        "date": "2026-12-25",
+        "name": "Christmas",
+        "subLabel": "Feast of the Nativity",
+        "dayOfWeek": "Friday",
+        "month": 12,
+        "day": 25,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "🎄",
+        "isCompanyHoliday": true,
+        "holidayKey": "christmas",
+        "type": "Official Company Holiday",
+        "notes": "Celebration of the birth of Jesus Christ. Offices closed.",
+        "isGazetted": true
+    },
+    {
+        "id": "event-2026-12-26",
+        "date": "2026-12-26",
+        "name": "Boxing Day / St. Stephen’s Day",
+        "subLabel": "Feast of St. Stephen",
+        "dayOfWeek": "Saturday",
+        "month": 12,
+        "day": 26,
+        "category": "Christian",
+        "religion": "Christianity",
+        "icon": "🎁",
+        "isCompanyHoliday": false,
+        "type": "Christian Observance (Working Day)",
+        "notes": "Traditional day of giving gifts and charity to service workers; honoring Christian martyr St. Stephen."
+    },
+    {
+        "id": "event-2026-12-31",
+        "date": "2026-12-31",
+        "name": "New Year’s Eve",
+        "subLabel": "Farewell to 2026 & Welcoming 2027",
+        "dayOfWeek": "Thursday",
+        "month": 12,
+        "day": 31,
+        "category": "Cultural",
+        "religion": "Cultural",
+        "icon": "✨",
+        "isCompanyHoliday": false,
+        "type": "Global Observance (Working Day)",
+        "notes": "Final day of the calendar year celebrated worldwide."
+    }
+];
+
+// Derived list of 15 Official Reach International Company Holidays (Green)
+export const COMPANY_HOLIDAYS_2026 = Object.freeze(
+    ALL_INDIAN_CALENDAR_EVENTS_2026.filter(ev => ev.isCompanyHoliday)
+);
+
+// O(1) Fast Lookup Map for Company Holidays keyed by ISO Date (YYYY-MM-DD)
+export const HOLIDAYS_BY_DATE_2026 = Object.freeze(
+    COMPANY_HOLIDAYS_2026.reduce((acc, h) => {
+        acc[h.date] = h;
+        return acc;
+    }, {})
+);
+
+// O(1) Fast Grouping Map for all festivals & events keyed by ISO Date (YYYY-MM-DD)
+export const EVENTS_BY_DATE_2026 = Object.freeze(
+    ALL_INDIAN_CALENDAR_EVENTS_2026.reduce((acc, ev) => {
+        if (!acc[ev.date]) {
+            acc[ev.date] = [];
+        }
+        acc[ev.date].push(ev);
+        return acc;
+    }, {})
+);
+
+export const MONTH_NAMES = Object.freeze([
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+]);
+
+export const MONTH_SHORT_NAMES = Object.freeze([
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+]);
+
+export const WEEKDAY_LABELS = Object.freeze([
+    { full: 'Sunday', short: 'Sun', letter: 'S' },
+    { full: 'Monday', short: 'Mon', letter: 'M' },
+    { full: 'Tuesday', short: 'Tue', letter: 'T' },
+    { full: 'Wednesday', short: 'Wed', letter: 'W' },
+    { full: 'Thursday', short: 'Thu', letter: 'T' },
+    { full: 'Friday', short: 'Fri', letter: 'F' },
+    { full: 'Saturday', short: 'Sat', letter: 'S' }
+]);
+
+export const RELIGION_FILTER_TABS = Object.freeze([
+    { id: 'all', label: 'All', icon: '🗓️' },
+    { id: 'company', label: 'Company (15)', icon: '🟢' },
+    { id: 'Hindu', label: 'Hindu', icon: '🕉️' },
+    { id: 'Islamic', label: 'Muslim', icon: '☪️' },
+    { id: 'Sikh', label: 'Sikh', icon: 'ੴ' },
+    { id: 'Christian', label: 'Christian', icon: '✝️' },
+    { id: 'Jain', label: 'Jain', icon: '卐' },
+    { id: 'Buddhist', label: 'Buddhist', icon: '☸️' },
+    { id: 'National', label: 'National', icon: '🇮🇳' }
+]);
+
+/**
+ * Checks if a given date string is an official company holiday.
+ * Safe from UTC timezone shift.
+ */
+export function isCompanyHoliday(dateStr) {
+    if (!dateStr) return false;
+    const cleanDate = String(dateStr).trim().slice(0, 10);
+    return Boolean(HOLIDAYS_BY_DATE_2026[cleanDate]);
+}
+
+/**
+ * Checks if a date has any festival or event (working day or holiday).
+ */
+export function hasEvent(dateStr) {
+    if (!dateStr) return false;
+    const cleanDate = String(dateStr).trim().slice(0, 10);
+    return Boolean(EVENTS_BY_DATE_2026[cleanDate] && EVENTS_BY_DATE_2026[cleanDate].length > 0);
+}
+
+/**
+ * Returns the company holiday object for a given date, or null.
+ */
+export function getHolidayForDate(dateStr) {
+    if (!dateStr) return null;
+    const cleanDate = String(dateStr).trim().slice(0, 10);
+    return HOLIDAYS_BY_DATE_2026[cleanDate] || null;
+}
+
+/**
+ * Returns all festivals and events for a given date (array).
+ */
+export function getEventsForDate(dateStr) {
+    if (!dateStr) return [];
+    const cleanDate = String(dateStr).trim().slice(0, 10);
+    return EVENTS_BY_DATE_2026[cleanDate] || [];
+}
+
+/**
+ * Unified day summary info helper for calendar rendering.
+ */
+export function getDayCalendarInfo(dateStr) {
+    if (!dateStr) return null;
+    const cleanDate = String(dateStr).trim().slice(0, 10);
+    const companyHoliday = HOLIDAYS_BY_DATE_2026[cleanDate] || null;
+    const events = EVENTS_BY_DATE_2026[cleanDate] || [];
+    const isHoliday = Boolean(companyHoliday);
+    const hasEvents = events.length > 0;
+
+    let statusType = 'regular';
+    if (isHoliday) {
+        statusType = 'company-holiday';
+    } else if (hasEvents) {
+        statusType = 'festival-event';
+    }
+
+    return {
+        date: cleanDate,
+        isCompanyHoliday: isHoliday,
+        companyHoliday,
+        events,
+        hasEvents,
+        statusType,
+        primaryName: companyHoliday ? companyHoliday.name : (events[0]?.name || null)
+    };
+}
+
+/**
+ * Returns all company holidays occurring in a given month (1-12) of 2026.
+ */
+export function getHolidaysForMonth(monthInt, yearInt = 2026) {
+    if (yearInt !== 2026) return [];
+    return COMPANY_HOLIDAYS_2026.filter(h => h.month === Number(monthInt));
+}
+
+/**
+ * Returns all festivals and events occurring in a given month (1-12) of 2026,
+ * with optional religion/category filter.
+ */
+export function getEventsForMonth(monthInt, yearInt = 2026, categoryFilter = 'all') {
+    if (yearInt !== 2026) return [];
+    const m = Number(monthInt);
+    let list = ALL_INDIAN_CALENDAR_EVENTS_2026.filter(ev => ev.month === m);
+    
+    if (categoryFilter === 'company') {
+        return list.filter(ev => ev.isCompanyHoliday);
+    }
+    if (categoryFilter && categoryFilter !== 'all') {
+        return list.filter(ev => ev.category === categoryFilter || ev.religion === categoryFilter);
+    }
+    return list;
+}
+
+/**
+ * Returns upcoming events and holidays relative to a given reference date.
+ */
+export function getUpcomingEvents(referenceDateStr, limit = 6, categoryFilter = 'all') {
+    let todayStr;
+    if (referenceDateStr) {
+        todayStr = String(referenceDateStr).slice(0, 10);
+    } else {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        todayStr = `${y}-${m}-${d}`;
+    }
+
+    let source = ALL_INDIAN_CALENDAR_EVENTS_2026;
+    if (categoryFilter === 'company') {
+        source = COMPANY_HOLIDAYS_2026;
+    } else if (categoryFilter && categoryFilter !== 'all') {
+        source = source.filter(ev => ev.category === categoryFilter || ev.religion === categoryFilter);
+    }
+
+    const upcoming = source.filter(ev => ev.date >= todayStr);
+    return limit ? upcoming.slice(0, limit) : upcoming;
+}
+
+/**
+ * Backwards compatible helper: Returns upcoming company holidays.
+ */
+export function getUpcomingHolidays(referenceDateStr, limit = 5) {
+    return getUpcomingEvents(referenceDateStr, limit, 'company');
+}
+
+/**
+ * Returns relative status string ('Today', 'Upcoming', or null).
+ */
+export function getRelativeHolidayStatus(targetDateStr, referenceDateStr) {
+    let todayStr;
+    if (referenceDateStr) {
+        todayStr = String(referenceDateStr).slice(0, 10);
+    } else {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        todayStr = `${y}-${m}-${d}`;
+    }
+
+    if (targetDateStr === todayStr) return 'Today';
+    if (targetDateStr > todayStr) return 'Upcoming';
+    return null;
+}
+
+/**
+ * Returns the total days in a given month for a given year (2026 non-leap year safe).
+ */
+export function getDaysInMonth(year, month) {
+    return new Date(year, month, 0).getDate();
+}
+
+/**
+ * Returns the day of the week (0 = Sunday, 1 = Monday, ..., 6 = Saturday) for the 1st of a month.
+ */
+export function getFirstDayOfWeek(year, month) {
+    return new Date(year, month - 1, 1).getDay();
+}
+
+/**
+ * Formats an ISO date into full readable format: e.g. "Thursday, January 1, 2026"
+ * Pure local string formatting to avoid UTC timezone offsets.
+ */
+export function formatFullHolidayDate(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const year = parts[0];
+    const monthInt = parseInt(parts[1], 10);
+    const dayInt = parseInt(parts[2], 10);
+    const monthName = MONTH_NAMES[monthInt - 1] || '';
+    const dayOfWeek = WEEKDAY_LABELS[new Date(parseInt(year, 10), monthInt - 1, dayInt).getDay()]?.full || '';
+    return `${dayOfWeek}, ${monthName} ${dayInt}, ${year}`;
+}

@@ -1,13 +1,41 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { searchMeetings, formatDateDDMMYYYY, parseAnyDateToParts } from '../src/utils/meetingUtils.js';
+/**
+ * Unit Test Script for Search Query Variations & Scoring Algorithm
+ */
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const rootDir = path.resolve(__dirname, '..');
+import { searchMeetings } from '../src/features/meeting-reports/utils/searchEngine.js';
+import { 
+    formatDateDDMMYYYY, 
+    generateAllDateVariations 
+} from '../src/features/meeting-reports/utils/meetingDateUtils.js';
 
-const searchIndex = JSON.parse(fs.readFileSync(path.join(rootDir, 'src/data/meetings/search-index.json'), 'utf-8'));
+// Realistic mock search index representing meetings in database
+const mockDates = [
+    { date: '2026-08-25', sites: ['Sanand'], people: ['Pradeep'], focus: 'Sanand Fleet Operations' },
+    { date: '2026-09-02', sites: ['Sanand', 'Bhiwadi'], people: ['Rahul Singh', 'Pradeep'], focus: 'Sanand and Bhiwadi equipment overhaul' },
+    { date: '2026-09-16', sites: ['Bijnor'], people: ['Amit Kumar'], focus: 'Bijnor plant breakdown' },
+    { date: '2026-09-17', sites: ['Workshop'], people: ['Vishwakarma Team'], focus: 'Vishwakarma Puja celebration' },
+    { date: '2026-09-19', sites: ['Bellary', 'Assam'], people: ['Naveen'], focus: 'Bellary mining equipment' },
+    { date: '2026-10-15', sites: ['Ahmedabad'], people: ['Pradeep'], focus: 'Boom lift servicing' },
+    { date: '2026-10-16', sites: ['Sanand'], people: ['Anuj'], focus: 'Hydraulic pump replacement' }
+];
+
+const searchIndex = mockDates.map(item => {
+    const displayDate = formatDateDDMMYYYY(item.date);
+    return {
+        id: `meet-${item.date}`,
+        date: item.date,
+        dateDisplay: displayDate,
+        dateFormatted: displayDate,
+        title: displayDate,
+        focus: item.focus,
+        isHoliday: false,
+        keywords: `${item.focus} ${item.sites.join(' ')} ${item.people.join(' ')}`,
+        sites: item.sites,
+        people: item.people,
+        parts: [],
+        dateVariations: generateAllDateVariations(item.date)
+    };
+});
 
 const testQueries = [
     { query: '02-09-2026', expectedDate: '2026-09-02' },

@@ -1,136 +1,132 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { createPortal } from 'react-dom';
-import { 
-    fetchYearsIndex, 
-    fetchMonthIndex, 
-    fetchMeetingDetail, 
-    fetchSearchIndex, 
-    searchMeetings, 
-    getChronologicalNavigation 
-} from '../utils/meetingDataService';
-import { 
-    formatMeetingSummary, 
-    copyTextToClipboard, 
-    formatMeetingDate, 
-    formatShortMeetingDate, 
-    formatLongMeetingDate,
-    formatDateDDMMYYYY,
-    normalizeDateToYYYYMMDD
-} from '../utils/meetingUtils';
-import { 
-    exportMeetingBreakdownsToExcel, 
-    exportMonthBreakdownsToExcel 
-} from '../utils/excelExportUtils';
-import MeetingShareMenu from './MeetingShareMenu';
-import PresentationOverlay from './PresentationOverlay';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useMeetingData } from '../features/meeting-reports/hooks/useMeetingData.js';
+import { useMeetingUrlSync } from '../features/meeting-reports/hooks/useMeetingUrlSync.js';
+import { useTextHighlighter } from '../features/meeting-reports/hooks/useTextHighlighter.js';
+import { searchMeetings, getChronologicalNavigation } from '../features/meeting-reports/utils/searchEngine.js';
+import { exportMonthBreakdownsToExcel } from '../features/meeting-reports/services/excelExportService.js';
+import MeetingHeaderBar from '../features/meeting-reports/components/MeetingHeaderBar.jsx';
+import MonthFilterBar from '../features/meeting-reports/components/MonthFilterBar.jsx';
+import MeetingList from '../features/meeting-reports/components/MeetingList.jsx';
+import MeetingDetailDocument from '../features/meeting-reports/components/MeetingDetailDocument.jsx';
+import TextHighlightPopup from '../features/meeting-reports/components/TextHighlightPopup.jsx';
+import { MeetingDocumentSkeleton } from './ui/Skeleton.jsx';
+import PresentationOverlay from './PresentationOverlay.jsx';
+import HolidayCalendar from '../features/holidays/components/HolidayCalendar.jsx';
 
-export default function MeetingSummariesPage({ 
-    searchQuery = '', 
+/**
+ * Reach International Operations - Meeting Summaries & Holiday Calendar Dashboard
+ * 
+ * Modular container orchestrating meeting stream, operational documents,
+ * search scoring, presentation overlay, and 2026 holiday calendar.
+ */
+export default function MeetingSummariesPage({
+    searchQuery = '',
     setSearchQuery,
     selectedMeeting: controlledSelectedMeeting,
     setSelectedMeeting: controlledSetSelectedMeeting,
     resetTrigger
 }) {
     // -------------------------------------------------------------
-    // State Management
+    // Data & State Management via Custom Hook
     // -------------------------------------------------------------
+    const {
+        yearsData,
+        selectedYear,
+        setSelectedYear,
+        selectedMonth,
+        setSelectedMonth,
+        monthData,
+        searchIndex,
+        selectedMeetingMeta: hookSelectedMeetingMeta,
+        setSelectedMeetingMeta: hookSetSelectedMeetingMeta,
+        fullMeetingDetail,
+        setFullMeetingDetail,
+        isLoadingInitial,
+        isLoadingMonth,
+        isLoadingMeeting
+    } = useMeetingData();
+
+    // Controlled vs Uncontrolled meeting selection
+    const selectedMeetingMeta = controlledSelectedMeeting !== undefined ? controlledSelectedMeeting : hookSelectedMeetingMeta;
+    const setSelectedMeetingMeta = controlledSetSelectedMeeting || hookSetSelectedMeetingMeta;
+
+    // Local UI state
     const [localSearchQuery, setLocalSearchQuery] = useState('');
     const currentSearchQuery = setSearchQuery ? searchQuery : localSearchQuery;
     const updateSearchQuery = setSearchQuery || setLocalSearchQuery;
 
-    const [yearsData, setYearsData] = useState(null);
-    const [selectedYear, setSelectedYear] = useState('2026');
-    const [selectedMonth, setSelectedMonth] = useState('09');
-    const [monthData, setMonthData] = useState(null);
-    const [searchIndex, setSearchIndex] = useState([]);
-
-    const [localSelectedMeeting, setLocalSelectedMeeting] = useState(null);
-    const selectedMeetingMeta = controlledSelectedMeeting !== undefined ? controlledSelectedMeeting : localSelectedMeeting;
-    const setSelectedMeetingMeta = controlledSetSelectedMeeting || setLocalSelectedMeeting;
-
-    const [fullMeetingDetail, setFullMeetingDetail] = useState(null);
-    const [isLoadingMeeting, setIsLoadingMeeting] = useState(false);
-    const [isLoadingMonth, setIsLoadingMonth] = useState(false);
-    const [copySuccess, setCopySuccess] = useState(false);
-    const [showScrollTop, setShowScrollTop] = useState(false);
-    const [isCardsScrolled, setIsCardsScrolled] = useState(false);
-    const [isDocScrolled, setIsDocScrolled] = useState(false);
+    const [activeDashboardTab, setActiveDashboardTab] = useState('meetings'); // 'meetings' | 'calendar'
+    const [showCalendarSidebar, setShowCalendarSidebar] = useState(false);
+    const [calendarSelectedDate, setCalendarSelectedDate] = useState(null);
     const [isPresentationMode, setIsPresentationMode] = useState(false);
-    const [selectionPopup, setSelectionPopup] = useState(null);
-    const [isExportingExcel, setIsExportingExcel] = useState(false);
     const [isExportingMonthExcel, setIsExportingMonthExcel] = useState(false);
+    const [showScrollTop, setShowScrollTop] = useState(false);
 
+    // DOM Refs
     const pageContainerRef = useRef(null);
     const documentCardRef = useRef(null);
     const cardsContainerRef = useRef(null);
-    const copyTimeoutRef = useRef(null);
 
-    // Text selection quick-highlighter handler
-    const handleDocumentSelection = useCallback(() => {
-        if (typeof window === 'undefined') return;
-        const selection = window.getSelection();
-        if (!selection || selection.isCollapsed) {
-            setSelectionPopup(null);
-            return;
-        }
-        const text = selection.toString().trim();
-        if (!text) {
-            setSelectionPopup(null);
-            return;
-        }
-
-        try {
-            const range = selection.getRangeAt(0);
-            const rect = range.getBoundingClientRect();
-            if (rect.width > 0 && rect.height > 0) {
-                setSelectionPopup({
-                    x: Math.max(90, Math.min(window.innerWidth - 90, rect.left + rect.width / 2)),
-                    y: rect.top - 10,
-                    range: range.cloneRange(),
-                    text
-                });
-            }
-        } catch {
-            setSelectionPopup(null);
-        }
-    }, []);
-
-    const applyTextHighlight = useCallback((color) => {
-        if (!selectionPopup?.range) return;
-        try {
-            const range = selectionPopup.range;
-            if (color === 'clear') {
-                const container = range.commonAncestorContainer;
-                const mark = container.nodeType === 1 ? container.closest('mark') : container.parentElement?.closest('mark');
-                if (mark) {
-                    const parent = mark.parentNode;
-                    while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
-                    parent.removeChild(mark);
-                }
-            } else {
-                const mark = document.createElement('mark');
-                mark.className = `text-hl-${color} transition-colors`;
-                range.surroundContents(mark);
-            }
-            window.getSelection()?.removeAllRanges();
-        } catch (e) {
-            console.warn('Text highlight wrap:', e);
-        }
-        setSelectionPopup(null);
-    }, [selectionPopup]);
+    // Text selection highlighter
+    const {
+        selectionPopup,
+        setSelectionPopup,
+        handleDocumentSelection,
+        applyTextHighlight
+    } = useTextHighlighter();
 
     // -------------------------------------------------------------
-    // Navbar Reset Coordination
+    // Bi-directional URL Parameter Synchronization
+    // -------------------------------------------------------------
+    useMeetingUrlSync({
+        searchQuery: currentSearchQuery,
+        setSearchQuery: updateSearchQuery,
+        selectedMeetingMeta,
+        setSelectedMeetingMeta,
+        activeDashboardTab,
+        setActiveDashboardTab,
+        searchIndex
+    });
+
+    // -------------------------------------------------------------
+    // Search & Filtered Meetings Calculation
+    // -------------------------------------------------------------
+    const isSearching = Boolean(currentSearchQuery && currentSearchQuery.trim().length > 0);
+
+    const searchResults = useMemo(() => {
+        if (!isSearching) return [];
+        return searchMeetings(currentSearchQuery, searchIndex);
+    }, [isSearching, currentSearchQuery, searchIndex]);
+
+    const displayMeetings = useMemo(() => {
+        if (isSearching) return searchResults;
+        return monthData?.meetings || [];
+    }, [isSearching, searchResults, monthData]);
+
+    // Chronological navigation (Prev/Next non-holiday meeting)
+    const { prevMeeting, nextMeeting } = useMemo(() => {
+        if (!selectedMeetingMeta || !yearsData?.chronologicalSequence) {
+            return { prevMeeting: null, nextMeeting: null };
+        }
+        return getChronologicalNavigation(selectedMeetingMeta.date, yearsData.chronologicalSequence);
+    }, [selectedMeetingMeta, yearsData]);
+
+    // Active meeting document to render (full detail or metadata)
+    const activeMeetingDoc = fullMeetingDetail || selectedMeetingMeta;
+
+    // -------------------------------------------------------------
+    // Reset Trigger (from Navbar Brand Logo click)
     // -------------------------------------------------------------
     useEffect(() => {
         if (resetTrigger) {
             setSelectedMeetingMeta(null);
             setFullMeetingDetail(null);
             updateSearchQuery('');
-            setIsCardsScrolled(false);
-            setIsDocScrolled(false);
             setIsPresentationMode(false);
             setSelectionPopup(null);
+            setActiveDashboardTab('meetings');
+            setShowCalendarSidebar(false);
+            setCalendarSelectedDate(null);
             if (cardsContainerRef.current) {
                 cardsContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -140,1567 +136,198 @@ export default function MeetingSummariesPage({
         }
     }, [resetTrigger]);
 
-    // -------------------------------------------------------------
-    // Initial Load: Years Index & Search Index
-    // -------------------------------------------------------------
+    // Reset presentation mode & selection popup when changing meetings
     useEffect(() => {
-        let isMounted = true;
-
-        async function init() {
-            try {
-                const [years, searchIdx] = await Promise.all([
-                    fetchYearsIndex(),
-                    fetchSearchIndex()
-                ]);
-
-                if (!isMounted) return;
-
-                setYearsData(years);
-                setSearchIndex(searchIdx);
-
-                if (years.latestYear) {
-                    setSelectedYear(years.latestYear);
-                }
-                if (years.latestMonth) {
-                    setSelectedMonth(years.latestMonth);
-                }
-            } catch (err) {
-                console.error("Failed to load initial meeting indexes:", err);
-            }
-        }
-
-        init();
-
-        return () => {
-            isMounted = false;
-        };
-    }, []);
-
-    // -------------------------------------------------------------
-    // Load Month Index when Year or Month changes
-    // -------------------------------------------------------------
-    useEffect(() => {
-        let isMounted = true;
-        if (!selectedYear || !selectedMonth) return;
-
-        async function loadMonth() {
-            setIsLoadingMonth(true);
-            try {
-                const data = await fetchMonthIndex(selectedYear, selectedMonth);
-                if (isMounted) {
-                    setMonthData(data);
-                }
-            } catch (err) {
-                console.error(`Failed to load month index for ${selectedYear}/${selectedMonth}:`, err);
-                if (isMounted) {
-                    setMonthData(null);
-                }
-            } finally {
-                if (isMounted) {
-                    setIsLoadingMonth(false);
-                }
-            }
-        }
-
-        loadMonth();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [selectedYear, selectedMonth]);
-
-    // -------------------------------------------------------------
-    // Load Full Meeting Detail on-demand when selected
-    // -------------------------------------------------------------
-    useEffect(() => {
-        let isMounted = true;
-        if (!selectedMeetingMeta) {
-            setFullMeetingDetail(null);
-            return;
-        }
-
-        // If the object already contains the full document (breakdowns array)
-        if (selectedMeetingMeta.breakdowns && selectedMeetingMeta.breakdowns.length > 0) {
-            setFullMeetingDetail(selectedMeetingMeta);
-            return;
-        }
-
-        async function loadMeeting() {
-            setIsLoadingMeeting(true);
-            setFullMeetingDetail(null);
-            try {
-                const doc = await fetchMeetingDetail(selectedMeetingMeta.path || selectedMeetingMeta.date);
-                if (isMounted) {
-                    setFullMeetingDetail(doc);
-                }
-            } catch (err) {
-                console.error("Failed to fetch full meeting document:", err);
-            } finally {
-                if (isMounted) {
-                    setIsLoadingMeeting(false);
-                }
-            }
-        }
-
-        loadMeeting();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [selectedMeetingMeta]);
-
-    // -------------------------------------------------------------
-    // Scroll to top on meeting selection & scroll listener
-    // -------------------------------------------------------------
-    const scrollToTop = useCallback(() => {
-        if (selectedMeetingMeta && pageContainerRef.current) {
-            pageContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-            setIsDocScrolled(false);
-        } else if (cardsContainerRef.current) {
-            cardsContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-            setIsCardsScrolled(false);
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [selectedMeetingMeta]);
-
-    // Reset document scroll state & presentation mode when switching meetings
-    useEffect(() => {
-        setIsDocScrolled(false);
         setIsPresentationMode(false);
         setSelectionPopup(null);
     }, [selectedMeetingMeta]);
 
-    // Track scroll for floating back-to-top button & card list scroll fade mask
+    // Track scroll for floating back-to-top button
     useEffect(() => {
         const handleScroll = () => {
             const activeContainer = selectedMeetingMeta ? pageContainerRef.current : cardsContainerRef.current;
             const scrollTop = activeContainer ? activeContainer.scrollTop : (window.scrollY || 0);
-            setShowScrollTop(scrollTop > 150);
-
-            if (cardsContainerRef.current) {
-                setIsCardsScrolled(cardsContainerRef.current.scrollTop > 4);
-            }
-            if (pageContainerRef.current) {
-                setIsDocScrolled(pageContainerRef.current.scrollTop > 4);
-            }
+            setShowScrollTop(scrollTop > 180);
         };
 
         const activeContainer = selectedMeetingMeta ? pageContainerRef.current : cardsContainerRef.current;
         if (activeContainer) {
             activeContainer.addEventListener('scroll', handleScroll, { passive: true });
+            return () => activeContainer.removeEventListener('scroll', handleScroll);
         }
-        window.addEventListener('scroll', handleScroll, { passive: true });
+    }, [selectedMeetingMeta]);
 
-        handleScroll();
-
-        return () => {
-            if (activeContainer) {
-                activeContainer.removeEventListener('scroll', handleScroll);
-            }
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }, [selectedMeetingMeta, monthData]);
-
-    // Reset card list scroll to top when month, year, or search changes
-    useEffect(() => {
-        if (cardsContainerRef.current) {
+    const scrollToTop = useCallback(() => {
+        if (selectedMeetingMeta && pageContainerRef.current) {
+            pageContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (cardsContainerRef.current) {
             cardsContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        setIsCardsScrolled(false);
-    }, [selectedMonth, selectedYear, currentSearchQuery]);
-
-    // Smooth wheel forwarding when hovering over static dashboard areas (header/month pills)
-    const handleDashboardWheel = useCallback((e) => {
-        if (cardsContainerRef.current && !cardsContainerRef.current.contains(e.target)) {
-            cardsContainerRef.current.scrollTop += e.deltaY;
-        }
-    }, []);
-
-    // Keyboard navigation for card list (ArrowUp, ArrowDown, PageUp, PageDown, Home, End)
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
-            if (selectedMeetingMeta) return;
-            if (!cardsContainerRef.current) return;
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                cardsContainerRef.current.scrollBy({ top: 68, behavior: 'smooth' });
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                cardsContainerRef.current.scrollBy({ top: -68, behavior: 'smooth' });
-            } else if (e.key === 'PageDown') {
-                e.preventDefault();
-                cardsContainerRef.current.scrollBy({ top: 260, behavior: 'smooth' });
-            } else if (e.key === 'PageUp') {
-                e.preventDefault();
-                cardsContainerRef.current.scrollBy({ top: -260, behavior: 'smooth' });
-            } else if (e.key === 'Home') {
-                e.preventDefault();
-                cardsContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-            } else if (e.key === 'End') {
-                e.preventDefault();
-                cardsContainerRef.current.scrollTo({ top: cardsContainerRef.current.scrollHeight, behavior: 'smooth' });
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [selectedMeetingMeta]);
-
-    // -------------------------------------------------------------
-    // URL Deep-linking & History Synchronization
-    // -------------------------------------------------------------
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        // Check if a meeting date was provided in URL query params on load
-        const params = new URLSearchParams(window.location.search);
-        const meetingParam = params.get('meeting') || params.get('date');
-
-        if (meetingParam) {
-            const isoDate = normalizeDateToYYYYMMDD(meetingParam);
-            if (isoDate && isoDate.includes('-')) {
-                const [y, m] = isoDate.split('-');
-                setSelectedYear(y);
-                setSelectedMonth(m);
-                setSelectedMeetingMeta({ date: isoDate, id: `meet-${isoDate}` });
-            }
-        }
-
-        // Handle Browser Back / Forward buttons
-        const handlePopState = () => {
-            const currentParams = new URLSearchParams(window.location.search);
-            const currentMeetingParam = currentParams.get('meeting') || currentParams.get('date');
-            if (currentMeetingParam) {
-                const isoDate = normalizeDateToYYYYMMDD(currentMeetingParam);
-                if (isoDate && isoDate.includes('-')) {
-                    const [y, m] = isoDate.split('-');
-                    setSelectedYear(y);
-                    setSelectedMonth(m);
-                    setSelectedMeetingMeta({ date: isoDate, id: `meet-${isoDate}` });
-                }
-            } else {
-                setSelectedMeetingMeta(null);
-                setFullMeetingDetail(null);
-            }
-        };
-
-        window.addEventListener('popstate', handlePopState);
-        return () => {
-            window.removeEventListener('popstate', handlePopState);
-        };
-    }, []);
-
-    // Sync URL when selected meeting changes (writes DD-MM-YYYY into URL bar)
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-        const url = new URL(window.location.href);
-
-        if (selectedMeetingMeta?.date) {
-            const dmyDate = formatDateDDMMYYYY(selectedMeetingMeta.date);
-            if (url.searchParams.get('meeting') !== dmyDate) {
-                url.searchParams.set('meeting', dmyDate);
-                url.searchParams.delete('date');
-                window.history.pushState({ meeting: dmyDate }, '', url.toString());
-            }
-        } else {
-            if (url.searchParams.has('meeting') || url.searchParams.has('date')) {
-                url.searchParams.delete('meeting');
-                url.searchParams.delete('date');
-                window.history.pushState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
-            }
-        }
-    }, [selectedMeetingMeta]);
-
-    // Clear search on meeting selection
-    useEffect(() => {
-        if (currentSearchQuery && selectedMeetingMeta) {
-            setSelectedMeetingMeta(null);
-        }
-    }, [currentSearchQuery]);
-
-    useEffect(() => {
-        return () => {
-            if (copyTimeoutRef.current) {
-                clearTimeout(copyTimeoutRef.current);
-            }
-        };
-    }, []);
 
     // -------------------------------------------------------------
     // Event Handlers
     // -------------------------------------------------------------
-    const handleSelectMeeting = (meeting) => {
-        if (meeting?.isHoliday) return;
-        if (meeting?.notRecorded) return;
-        if (meeting?.noMeetingHeld || (meeting?.breakdownCount === 0 && meeting?.partsCount === 0 && meeting?.actionItemsCount === 0)) return;
-        if (meeting?.date) {
-            const parts = meeting.date.split('-');
-            if (parts.length >= 2) {
-                setSelectedYear(parts[0]);
-                setSelectedMonth(parts[1]);
-            }
+    const handleSelectMeeting = useCallback((meta) => {
+        setSelectedMeetingMeta(meta);
+        if (pageContainerRef.current) {
+            pageContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        setSelectedMeetingMeta(meeting);
-        scrollToTop();
-    };
+    }, [setSelectedMeetingMeta]);
 
-    const copyFormattedSummary = async () => {
-        if (!fullMeetingDetail) return;
-        
-        const text = formatMeetingSummary(fullMeetingDetail);
-        const success = await copyTextToClipboard(text);
-        
-        if (success) {
-            setCopySuccess(true);
-            if (copyTimeoutRef.current) {
-                clearTimeout(copyTimeoutRef.current);
-            }
-            copyTimeoutRef.current = setTimeout(() => {
-                setCopySuccess(false);
-            }, 2500);
+    const handleBackToStream = useCallback(() => {
+        setSelectedMeetingMeta(null);
+        setFullMeetingDetail(null);
+    }, [setSelectedMeetingMeta, setFullMeetingDetail]);
+
+    const handleOpenCalendarForDate = useCallback((isoDate) => {
+        if (isoDate) {
+            setCalendarSelectedDate(isoDate);
+            setActiveDashboardTab('calendar');
+            setShowCalendarSidebar(true);
         }
-    };
+    }, []);
 
-    const handleExportMeetingExcel = async () => {
-        if (!fullMeetingDetail) return;
-        setIsExportingExcel(true);
-        try {
-            await exportMeetingBreakdownsToExcel(fullMeetingDetail);
-        } catch (err) {
-            console.error('Failed to export meeting breakdowns to Excel:', err);
-        } finally {
-            setIsExportingExcel(false);
-        }
-    };
+    const handleExportMonth = useCallback(async () => {
+        const meetingsToExport = monthData?.meetings || [];
+        if (meetingsToExport.length === 0) return;
 
-    const handleExportMonthExcel = async () => {
-        if (!monthData || !monthData.meetings || monthData.meetings.length === 0) return;
         setIsExportingMonthExcel(true);
         try {
-            const fullDocs = await Promise.all(
-                monthData.meetings.map(async (m) => {
-                    try {
-                        return await fetchMeetingDetail(m.path || m.date);
-                    } catch {
-                        return m;
-                    }
-                })
-            );
-            const monthName = monthData.monthName || selectedMonth;
-            await exportMonthBreakdownsToExcel(fullDocs, `${monthName} ${selectedYear}`);
+            const monthLabel = `${monthData.monthName || 'Month'} ${monthData.year || '2026'}`;
+            await exportMonthBreakdownsToExcel(meetingsToExport, monthLabel);
         } catch (err) {
-            console.error('Failed to export month breakdowns to Excel:', err);
+            console.error('Failed to export month to Excel:', err);
         } finally {
             setIsExportingMonthExcel(false);
         }
-    };
+    }, [monthData]);
 
-    // -------------------------------------------------------------
-    // Calculations: Search Filtering & Navigation
-    // -------------------------------------------------------------
-    const isSearching = Boolean(currentSearchQuery && currentSearchQuery.trim());
-    const searchResults = isSearching ? searchMeetings(currentSearchQuery, searchIndex) : [];
-
-    // Chronological navigation calculations
-    const { prevMeeting, nextMeeting } = getChronologicalNavigation(
-        fullMeetingDetail?.date || selectedMeetingMeta?.date,
-        yearsData?.chronologicalSequence
-    );
-
-    // Current Year's Month List & Total Meetings
-    const availableYears = (yearsData?.years && yearsData.years.length > 0)
-        ? yearsData.years
-        : [{ year: selectedYear || '2026', months: [] }];
-    const activeYearObject = availableYears.find(y => String(y.year) === String(selectedYear)) || availableYears[0];
-    const availableMonthsForYear = activeYearObject?.months || [];
-    const totalMeetingsForYear = activeYearObject?.meetingCount ?? availableMonthsForYear.reduce((acc, m) => acc + (m.meetingCount || 0), 0);
-
-    // Selected Month Name
-    const activeMonthObject = availableMonthsForYear.find(m => m.month === selectedMonth);
-    const displayMonthName = activeMonthObject?.name || monthData?.monthName || 'September';
-
-    // -------------------------------------------------------------
-    // Render Component
-    // -------------------------------------------------------------
     return (
-        <div className="flex-1 min-h-0 flex flex-col bg-stage-bg w-full select-none animate-fade-in relative overflow-hidden">
-            {selectedMeetingMeta ? (
-                /* ========================================================= */
-                /* OPERATIONAL DOCUMENT VIEW                                 */
-                /* ========================================================= */
-                <div 
-                    ref={pageContainerRef} 
-                    onScroll={(e) => {
-                        const scrolled = e.currentTarget.scrollTop > 4;
-                        if (scrolled !== isDocScrolled) {
-                            setIsDocScrolled(scrolled);
-                        }
-                    }}
-                    className={`flex flex-col overflow-y-auto w-full custom-scrollbar transition-all duration-200 ${
-                        isPresentationMode
-                            ? 'fixed inset-0 z-40 bg-stage-bg'
-                            : 'flex-1 min-h-0 relative'
-                    }`}
-                >
-                    {/* Cloud Effect: Top Scroll Frosted Blur Mask (hidden in presentation mode) */}
-                    {!isPresentationMode && (
-                        <div 
-                            className={`top-blur-mask transition-opacity duration-200 ${isDocScrolled ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} 
-                            aria-hidden="true" 
-                        />
-                    )}
-                    <div className={`px-2.5 sm:px-4 md:px-6 lg:px-8 pb-12 flex justify-center meeting-document-outer ${
-                        isPresentationMode ? 'pt-4 sm:pt-6' : 'pt-3 sm:pt-5'
-                    }`}>
+        <div 
+            ref={pageContainerRef}
+            onMouseUp={handleDocumentSelection}
+            className="flex-1 w-full h-full min-h-0 bg-stage-bg flex flex-col overflow-y-auto relative p-2.5 sm:p-4 lg:p-6"
+        >
+            <div className="max-w-[1440px] w-full mx-auto flex-1 flex flex-col gap-3 sm:gap-4 min-h-0">
+                {/* 1. Header Bar: Titles, View switcher, Calendar toggle & Monthly export */}
+                <MeetingHeaderBar
+                    selectedMeeting={selectedMeetingMeta}
+                    onBackToStream={handleBackToStream}
+                    activeDashboardTab={activeDashboardTab}
+                    onSelectTab={setActiveDashboardTab}
+                    showCalendarSidebar={showCalendarSidebar}
+                    onToggleCalendarSidebar={() => setShowCalendarSidebar(prev => !prev)}
+                    onExportMonthExcel={!isSearching && displayMeetings.length > 0 ? handleExportMonth : null}
+                    isExportingMonthExcel={isExportingMonthExcel}
+                    selectedMonthName={monthData?.monthName || 'Month'}
+                />
+
+                {/* 2. Dual-Column Main Content Container: Left = Reports/Stream, Right = Calendar */}
+                <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4 xl:gap-5 overflow-hidden">
+                    {/* Left Column: Meeting Stream OR Selected Meeting Document */}
                     <div 
-                        ref={documentCardRef}
-                        onMouseUp={handleDocumentSelection}
-                        onTouchEnd={handleDocumentSelection}
-                        className="relative bg-white border border-border-light rounded-2xl p-3.5 sm:p-6 md:p-8 lg:p-10 max-w-[1440px] w-full mx-auto shadow-card meeting-document-card"
+                        className={`flex-1 min-h-0 flex flex-col gap-3 overflow-hidden ${
+                            activeDashboardTab === 'calendar' ? 'hidden lg:flex' : 'flex'
+                        }`}
                     >
-                        {/* Presentation Canvas & Toolbar Overlay */}
-                        {isPresentationMode && (
-                            <PresentationOverlay
-                                containerRef={pageContainerRef}
-                                contentRef={documentCardRef}
-                                onClose={() => setIsPresentationMode(false)}
-                                meetingTitle={selectedMeetingMeta?.dateFormatted || 'Daily Meeting Report'}
+                        {/* If in stream view: Month Pills Filter Strip */}
+                        {!selectedMeetingMeta && (
+                            <MonthFilterBar
+                                yearsData={yearsData}
+                                selectedYear={selectedYear}
+                                onSelectYear={setSelectedYear}
+                                selectedMonth={selectedMonth}
+                                onSelectMonth={setSelectedMonth}
+                                isSearching={isSearching}
+                                searchQuery={currentSearchQuery}
+                                onClearSearch={() => updateSearchQuery('')}
                             />
                         )}
 
-                        {/* Top Navigation & Action Row */}
-                        <div className="flex items-center justify-between gap-3 pb-3 sm:pb-3.5 mb-4 sm:mb-5 border-b border-slate-100 no-print">
-                            <button 
-                                type="button"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 border border-border-light active:scale-95 transition-all cursor-pointer shadow-2xs"
-                                onClick={() => {
-                                    setIsPresentationMode(false);
-                                    setSelectedMeetingMeta(null);
-                                    setFullMeetingDetail(null);
-                                    scrollToTop();
-                                }}
-                                title="Return to Daily Meeting Report"
-                                aria-label="Return to Daily Meeting Report"
-                            >
-                                <span>← Daily Meeting Report</span>
-                            </button>
-
-                            {/* Action Buttons: Present, Share & Copy */}
-                            <div className="flex items-center gap-1.5 sm:gap-2">
-                                {/* Presentation Mode Toggle Button */}
-                                <button
-                                    type="button"
-                                    onClick={() => setIsPresentationMode(prev => !prev)}
-                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-xs active:scale-95 ${
-                                        isPresentationMode
-                                            ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-200'
-                                            : 'bg-gradient-to-r from-ribbon-4 to-ribbon-3 hover:opacity-95 text-white shadow-cyan-200'
-                                    }`}
-                                    title={isPresentationMode ? 'Exit Presentation Mode (Esc)' : 'Start Presentation Mode (P)'}
-                                    aria-label={isPresentationMode ? 'Exit Presentation Mode' : 'Start Presentation Mode'}
-                                >
-                                    <span className="text-xs sm:text-sm">{isPresentationMode ? '✕' : '▶'}</span>
-                                    <span className="font-extrabold">{isPresentationMode ? 'Exit' : 'Present'}</span>
-                                </button>
-
-                                {/* Share Button & Popover */}
-                                <MeetingShareMenu 
-                                    meeting={fullMeetingDetail} 
-                                    disabled={!fullMeetingDetail || isLoadingMeeting} 
-                                />
-
-                                {/* Small Static Copy Button */}
-                                <button
-                                    type="button"
-                                    onClick={copyFormattedSummary}
-                                    disabled={!fullMeetingDetail || isLoadingMeeting}
-                                    className={`relative w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all duration-200 active:scale-90 border flex-shrink-0 cursor-pointer group ${
-                                        copySuccess 
-                                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs' 
-                                            : 'bg-white text-slate-500 border-border-light hover:text-theme-breakdown hover:border-theme-breakdown hover:bg-slate-50 shadow-2xs'
-                                    } ${(!fullMeetingDetail || isLoadingMeeting) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    title={copySuccess ? 'Copied to clipboard!' : 'Copy full meeting summary'}
-                                    aria-label="Copy full meeting summary"
-                                >
-                                    {copySuccess ? (
-                                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                            <polyline points="20 6 9 17 4 12"></polyline>
-                                        </svg>
-                                    ) : (
-                                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                        </svg>
-                                    )}
-
-                                    {/* Tooltip */}
-                                    <span className={`absolute right-full mr-2 px-2 py-0.5 rounded-md text-[11px] font-bold whitespace-nowrap transition-all shadow-md ${
-                                        copySuccess ? 'bg-emerald-700 text-white opacity-100' : 'bg-slate-900 text-white opacity-0 group-hover:opacity-100 pointer-events-none'
-                                    }`}>
-                                        {copySuccess ? '✓ Copied!' : 'Copy'}
-                                    </span>
-                                </button>
-
-                                {/* Export Breakdowns to Excel Button */}
-                                <button
-                                    type="button"
-                                    onClick={handleExportMeetingExcel}
-                                    disabled={!fullMeetingDetail || isLoadingMeeting || isExportingExcel}
-                                    className={`relative w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all duration-200 active:scale-90 border flex-shrink-0 cursor-pointer group ${
-                                        isExportingExcel 
-                                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs' 
-                                            : 'bg-white text-slate-500 border-border-light hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50/50 shadow-2xs'
-                                    } ${(!fullMeetingDetail || isLoadingMeeting || isExportingExcel) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    title={isExportingExcel ? 'Generating Excel file...' : 'Export Breakdowns to Excel (.xlsx)'}
-                                    aria-label="Export Breakdowns to Excel"
-                                >
-                                    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                        <polyline points="14 2 14 8 20 8"></polyline>
-                                        <line x1="8" y1="13" x2="16" y2="13"></line>
-                                        <line x1="8" y1="17" x2="16" y2="17"></line>
-                                        <polyline points="10 9 9 9 8 9"></polyline>
-                                    </svg>
-
-                                    {/* Tooltip */}
-                                    <span className={`absolute right-full mr-2 px-2 py-0.5 rounded-md text-[11px] font-bold whitespace-nowrap transition-all shadow-md ${
-                                        isExportingExcel ? 'bg-emerald-700 text-white opacity-100' : 'bg-slate-900 text-white opacity-0 group-hover:opacity-100 pointer-events-none'
-                                    }`}>
-                                        {isExportingExcel ? 'Exporting...' : 'Excel'}
-                                    </span>
-                                </button>
+                        {/* Document View vs Stream List View */}
+                        {selectedMeetingMeta ? (
+                            <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar">
+                                {isLoadingMeeting ? (
+                                    <MeetingDocumentSkeleton />
+                                ) : (
+                                    <MeetingDetailDocument
+                                        meeting={activeMeetingDoc}
+                                        prevMeeting={prevMeeting}
+                                        nextMeeting={nextMeeting}
+                                        onSelectMeeting={handleSelectMeeting}
+                                        onOpenPresentation={() => setIsPresentationMode(true)}
+                                        onOpenCalendar={handleOpenCalendarForDate}
+                                        contentRef={documentCardRef}
+                                    />
+                                )}
                             </div>
-                        </div>
-
-                        {/* Meeting Detail Document Skeleton Loader */}
-                        {isLoadingMeeting && !fullMeetingDetail && (
-                            <div className="space-y-6 sm:space-y-8 animate-pulse select-none" role="status" aria-label="Loading meeting document">
-                                {/* Title & Focus Skeleton */}
-                                <div className="pb-4 sm:pb-5 mb-5 sm:mb-6 border-b border-slate-100">
-                                    <div className="h-8 sm:h-10 w-48 sm:w-64 bg-slate-200/90 rounded-lg mb-4"></div>
-                                    <div className="bg-slate-50/80 border border-slate-200/90 border-l-4 border-l-blue-400 rounded-xl p-3 sm:p-4 space-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-4 h-4 bg-blue-200 rounded"></div>
-                                            <div className="w-24 h-3 bg-blue-200 rounded"></div>
-                                        </div>
-                                        <div className="w-full sm:w-4/5 h-4 bg-slate-200/80 rounded"></div>
-                                    </div>
-                                </div>
-
-                                {/* Section 01 Breakdowns Skeleton */}
-                                <section className="space-y-4">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-blue-200/80 flex-shrink-0"></div>
-                                            <div className="w-44 sm:w-60 h-5 bg-slate-200/90 rounded"></div>
-                                        </div>
-                                        <div className="w-20 h-5 bg-blue-100/70 rounded-full"></div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-3.5 sm:gap-4">
-                                        {[1, 2, 3].map((n) => (
-                                            <div key={n} className="bg-slate-50/70 border border-border-light border-l-4 border-l-blue-400 rounded-xl p-3.5 sm:p-4.5 space-y-3">
-                                                <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                                                        <div className="w-44 sm:w-72 h-4 bg-slate-300 rounded"></div>
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-2 pt-1">
-                                                    <div className="w-full h-3.5 bg-slate-200/80 rounded"></div>
-                                                    <div className="w-5/6 h-3.5 bg-slate-200/80 rounded"></div>
-                                                    <div className="w-3/5 h-3.5 bg-slate-200/80 rounded"></div>
-                                                </div>
-                                                <div className="pt-2 border-t border-slate-200/60 mt-1">
-                                                    <div className="w-2/5 h-3.5 bg-slate-200 rounded"></div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </section>
-
-                                {/* Section 02 Parts Table Skeleton */}
-                                <section className="space-y-4">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-teal-200/80 flex-shrink-0"></div>
-                                            <div className="w-36 h-5 bg-slate-200/90 rounded"></div>
-                                        </div>
-                                        <div className="w-16 h-5 bg-teal-100/70 rounded-full"></div>
-                                    </div>
-                                    <div className="rounded-xl border border-border-light overflow-hidden bg-white">
-                                        <div className="h-9 bg-slate-100/80"></div>
-                                        <div className="divide-y divide-slate-100">
-                                            <div className="h-10 bg-white"></div>
-                                            <div className="h-10 bg-slate-50/50"></div>
-                                            <div className="h-10 bg-white"></div>
-                                        </div>
-                                    </div>
-                                </section>
-
-                                {/* Section 03 Directives Skeleton */}
-                                <section className="space-y-4">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-200/80 flex-shrink-0"></div>
-                                            <div className="w-32 h-5 bg-slate-200/90 rounded"></div>
-                                        </div>
-                                        <div className="w-16 h-5 bg-amber-100/70 rounded-full"></div>
-                                    </div>
-                                    <div className="bg-amber-50/60 border border-amber-200/80 border-l-4 border-l-amber-400 rounded-xl p-4 space-y-2.5">
-                                        <div className="w-48 sm:w-64 h-4 bg-amber-200 rounded"></div>
-                                        <div className="w-4/5 h-3 bg-amber-100 rounded"></div>
-                                    </div>
-                                </section>
-                            </div>
+                        ) : (
+                            <MeetingList
+                                meetings={displayMeetings}
+                                selectedMeetingId={selectedMeetingMeta?.id}
+                                onSelectMeeting={handleSelectMeeting}
+                                onOpenCalendar={handleOpenCalendarForDate}
+                                isLoading={isLoadingInitial || isLoadingMonth}
+                                isSearching={isSearching}
+                                searchQuery={currentSearchQuery}
+                                containerRef={cardsContainerRef}
+                            />
                         )}
+                    </div>
 
-                        {/* Loaded Content */}
-                        {fullMeetingDetail && (
-                            <>
-                                {/* Print-Only Formal Report Header */}
-                                <div className="hidden print:block pb-4 mb-5 border-b-2 border-slate-900">
-                                    <div className="flex items-start justify-between">
-                                        <div>
-                                            <div className="text-xl font-black tracking-tight text-slate-900 uppercase">
-                                                REACH INTERNATIONAL
-                                            </div>
-                                            <div className="text-xs text-slate-600 font-semibold tracking-wide">
-                                                Operations & Fleet Equipment Management
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className="inline-block px-2.5 py-0.5 rounded bg-blue-50 text-blue-800 text-[10px] font-extrabold border border-blue-200 uppercase tracking-wider">
-                                                Daily Operations Report
-                                            </span>
-                                            <div className="text-[10px] text-slate-500 font-mono mt-1">
-                                                Ref: #{fullMeetingDetail.id || 'REPORT'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Meeting Summary Main Title & Date */}
-                                <div className="pb-4 sm:pb-5 mb-5 sm:mb-6 print:pb-2 print:mb-3">
-                                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4 print:text-2xl print:mb-2">
-                                        {formatDateDDMMYYYY(fullMeetingDetail.date || fullMeetingDetail.dateDisplay || fullMeetingDetail.dateFormatted || fullMeetingDetail.title)}
-                                    </h1>
-
-                                    {/* Focus Section */}
-                                    {fullMeetingDetail.focus && (
-                                        <div className="bg-slate-50/80 border border-slate-200/90 border-l-4 border-l-theme-breakdown rounded-xl p-3 sm:p-4 shadow-2xs print:bg-slate-50 print:border-slate-300 print:shadow-none">
-                                            <div className="flex items-center gap-1.5 mb-1">
-                                                <span className="text-xs">🎯</span>
-                                                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-theme-breakdown">
-                                                    Meeting Focus
-                                                </span>
-                                            </div>
-                                            <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-semibold print:text-slate-900">
-                                                {fullMeetingDetail.focus}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Holiday Notification Banner */}
-                                {fullMeetingDetail.isHoliday && (
-                                    <div className="bg-amber-50/80 border border-amber-200/90 border-l-4 border-l-amber-500 rounded-xl p-4 sm:p-5 mb-6 shadow-xs">
-                                        <div className="flex items-start sm:items-center gap-3">
-                                            <span className="text-2xl sm:text-3xl flex-shrink-0">🎉</span>
-                                            <div className="space-y-1">
-                                                <h2 className="text-sm sm:text-base font-extrabold text-amber-950">
-                                                    Official Company Holiday – {fullMeetingDetail.holidayName || 'Holiday'}
-                                                </h2>
-                                                <p className="text-xs sm:text-sm text-amber-900/80 leading-relaxed font-medium">
-                                                    Operations, workshop maintenance, and administrative offices remained closed in celebration of {fullMeetingDetail.holidayName || 'Company Holiday'}. No daily operations breakdown or coordination meeting was conducted on this day.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Meeting Conducted But Not Recorded (Internet Issue) Banner */}
-                                {fullMeetingDetail.notRecorded && (
-                                    <div className="bg-amber-50/80 border border-amber-200/90 border-l-4 border-l-amber-500 rounded-xl p-4 sm:p-5 mb-6 shadow-xs">
-                                        <div className="flex items-start sm:items-center gap-3">
-                                            <span className="text-2xl sm:text-3xl flex-shrink-0">📶</span>
-                                            <div className="space-y-1">
-                                                <h2 className="text-sm sm:text-base font-extrabold text-amber-950">
-                                                    Daily Operations Meeting Conducted — Recording Unavailable Due to Internet Issue
-                                                </h2>
-                                                <p className="text-xs sm:text-sm text-amber-900/80 leading-relaxed font-medium">
-                                                    The daily operational fleet and site review was conducted as scheduled. However, due to local internet and network connectivity disruptions, the recording and transcription could not be captured.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Office Open & Routine Operations (No Meeting Held) Banner */}
-                                {!fullMeetingDetail.isHoliday && !fullMeetingDetail.notRecorded && (!fullMeetingDetail.breakdowns || fullMeetingDetail.breakdowns.length === 0) && (
-                                    <div className="bg-sky-50/80 border border-sky-200/90 border-l-4 border-l-sky-600 rounded-xl p-4 sm:p-5 mb-6 shadow-xs">
-                                        <div className="flex items-start sm:items-center gap-3">
-                                            <span className="text-2xl sm:text-3xl flex-shrink-0">🏢</span>
-                                            <div className="space-y-1">
-                                                <h2 className="text-sm sm:text-base font-extrabold text-sky-950">
-                                                    Office & Fleet Operations Active — No Meeting Held
-                                                </h2>
-                                                <p className="text-xs sm:text-sm text-sky-900/80 leading-relaxed font-medium">
-                                                    Corporate offices, regional workshops, and site fleet operations were fully active and operational. No daily operations breakdown or coordination meeting was conducted on this day.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Clean Divider */}
-                                <hr className="border-border-light my-6 sm:my-8" />
-
-                                {/* SECTION 01: Machine Breakdowns & Site Updates */}
-                                {fullMeetingDetail.breakdowns && fullMeetingDetail.breakdowns.length > 0 && (
-                                    <section className="mb-6 sm:mb-8 pb-5 sm:pb-6 print:mb-4 print:pb-2">
-                                        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4 print:break-after-avoid">
-                                            <h2 className="text-sm sm:text-base md:text-lg font-extrabold text-slate-900 flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
-                                                <span className="flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-blue-600 text-white text-xs font-extrabold shadow-xs flex-shrink-0">
-                                                    01
-                                                </span>
-                                                <span className="truncate sm:overflow-visible">
-                                                    <span className="hidden sm:inline">Machine </span>Breakdowns & Site Updates
-                                                </span>
-                                            </h2>
-                                            <div className="flex items-center gap-2 flex-shrink-0">
-                                                <span className="text-[11px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-theme-breakdown border border-blue-200/80 whitespace-nowrap shadow-2xs print:border-blue-300">
-                                                    {fullMeetingDetail.breakdowns.length} {fullMeetingDetail.breakdowns.length === 1 ? 'Machine' : 'Machines'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="flex flex-col gap-3.5 sm:gap-4 print:gap-2.5">
-                                            {fullMeetingDetail.breakdowns.map((item, idx) => (
-                                                <div key={idx} className="breakdown-item w-full bg-slate-50/70 border border-border-light border-l-4 border-l-theme-breakdown rounded-xl p-3.5 sm:p-4.5 text-xs sm:text-sm shadow-xs flex flex-col justify-between gap-2.5 transition-colors hover:bg-slate-50/95 print:bg-slate-50/90 print:border-slate-300 print:shadow-none print:break-inside-avoid print:p-3">
-                                                    <div>
-                                                        <div className="pb-2 border-b border-slate-200/70 print:border-slate-300">
-                                                            <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                                                                <span className="w-2 h-2 rounded-full bg-theme-breakdown flex-shrink-0"></span>
-                                                                <span className="leading-snug">{item.site}</span>
-                                                            </h3>
-                                                        </div>
-                                                        
-                                                        <div className="space-y-1.5 text-xs sm:text-sm pt-2">
-                                                            {item.issue && (
-                                                                <p className="leading-relaxed">
-                                                                    <span className="font-bold text-slate-800 mr-1.5">Issue:</span>
-                                                                    <span className="text-slate-600">{item.issue}</span>
-                                                                </p>
-                                                            )}
-
-                                                            {item.action && (
-                                                                <p className="leading-relaxed">
-                                                                    <span className="font-bold text-slate-800 mr-1.5">Action:</span>
-                                                                    <span className="text-slate-600">{item.action}</span>
-                                                                </p>
-                                                            )}
-
-                                                            {item.logistics && item.logistics !== 'undefined' && String(item.logistics).trim() && (
-                                                                <p className="leading-relaxed">
-                                                                    <span className="font-bold text-slate-800 mr-1.5">Logistics:</span>
-                                                                    <span className="text-slate-600">{item.logistics}</span>
-                                                                </p>
-                                                            )}
-
-                                                            {item.clarification && item.clarification !== 'undefined' && String(item.clarification).trim() && (
-                                                                <p className="leading-relaxed">
-                                                                    <span className="font-bold text-slate-800 mr-1.5">Clarification:</span>
-                                                                    <span className="text-slate-600">{item.clarification}</span>
-                                                                </p>
-                                                            )}
-
-                                                            {item.pendingIssue && item.pendingIssue !== 'undefined' && String(item.pendingIssue).trim() && (
-                                                                <p className="leading-relaxed">
-                                                                    <span className="font-bold text-amber-900 mr-1.5">Pending Issue:</span>
-                                                                    <span className="text-amber-800 font-medium">{item.pendingIssue}</span>
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-
-                                                    {item.status && item.status !== 'undefined' && String(item.status).trim() && (
-                                                        <div className="pt-2 border-t border-slate-200/60 mt-1">
-                                                            <p className="text-xs leading-relaxed">
-                                                                <span className="font-bold text-slate-700 mr-1.5">Status:</span>
-                                                                <span className="text-slate-900 font-semibold">{item.status}</span>
-                                                            </p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
-
-                                {/* SECTION 02: Parts, Procurement & Inventory */}
-                                {fullMeetingDetail.parts && fullMeetingDetail.parts.length > 0 && (
-                                    <section className="mb-6 sm:mb-8 pb-5 sm:pb-6 print:mb-4 print:pb-2">
-                                        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4 print:break-after-avoid">
-                                            <h2 className="text-sm sm:text-base md:text-lg font-extrabold text-slate-900 flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
-                                                <span className="flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-teal-600 text-white text-xs font-extrabold shadow-xs flex-shrink-0">
-                                                    02
-                                                </span>
-                                                <span className="truncate sm:overflow-visible">Parts & Procurement</span>
-                                            </h2>
-                                            <span className="text-[11px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-50 text-theme-parts border border-teal-200/80 flex-shrink-0 whitespace-nowrap shadow-2xs print:border-teal-300">
-                                                {fullMeetingDetail.parts.length} Items
-                                            </span>
-                                        </div>
-                                        
-                                        <div className="overflow-x-auto rounded-xl border border-border-light shadow-xs print:overflow-visible print:border-slate-300 print:shadow-none">
-                                            <table className="w-full text-left text-xs sm:text-sm border-collapse bg-white">
-                                                <thead className="print:table-header-group">
-                                                    <tr className="bg-slate-100/90 border-b border-border-light text-slate-800 font-bold uppercase text-[10px] sm:text-xs tracking-wider print:bg-slate-100 print:border-slate-300">
-                                                        <th className="px-3.5 py-2.5 sm:px-4 sm:py-3 print:py-2 print:px-3">Part / Equipment</th>
-                                                        <th className="px-3.5 py-2.5 sm:px-4 sm:py-3 print:py-2 print:px-3">Site / Context</th>
-                                                        <th className="px-3.5 py-2.5 sm:px-4 sm:py-3 print:py-2 print:px-3">Status & Next Steps</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {fullMeetingDetail.parts.map((p, idx) => (
-                                                        <tr key={idx} className="border-b border-border-light last:border-0 hover:bg-slate-50/80 transition-colors print:border-slate-200 print:break-inside-avoid">
-                                                            <td className="px-3.5 py-2.5 sm:px-4 sm:py-3 font-bold text-slate-900 min-w-[130px] print:py-2 print:px-3">{p.part}</td>
-                                                            <td className="px-3.5 py-2.5 sm:px-4 sm:py-3 text-slate-600 min-w-[110px] print:py-2 print:px-3">{p.context}</td>
-                                                            <td className="px-3.5 py-2.5 sm:px-4 sm:py-3 text-slate-700 min-w-[180px] font-medium print:py-2 print:px-3">{p.statusNextSteps}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </section>
-                                )}
-
-                                {/* SECTION 03: Policy & Process Directives */}
-                                {fullMeetingDetail.directives && fullMeetingDetail.directives.length > 0 && (
-                                    <section className="mb-6 sm:mb-8 pb-5 sm:pb-6 print:mb-4 print:pb-2">
-                                        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4 print:break-after-avoid">
-                                            <h2 className="text-sm sm:text-base md:text-lg font-extrabold text-slate-900 flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
-                                                <span className="flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-500 text-white text-xs font-extrabold shadow-xs flex-shrink-0">
-                                                    03
-                                                </span>
-                                                <span className="truncate sm:overflow-visible">Directives</span>
-                                            </h2>
-                                            <span className="text-[11px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-theme-directive border border-amber-200/80 flex-shrink-0 whitespace-nowrap shadow-2xs print:border-amber-300">
-                                                {fullMeetingDetail.directives.length} Policies
-                                            </span>
-                                        </div>
-                                        
-                                        <div className="flex flex-col gap-3.5 print:gap-2.5">
-                                            {fullMeetingDetail.directives.map((directive, idx) => (
-                                                <div key={idx} className="directive-item w-full bg-amber-50/70 border border-amber-200/80 border-l-4 border-l-theme-directive rounded-xl p-3.5 sm:p-4.5 shadow-xs space-y-2 print:bg-amber-50/60 print:border-amber-300 print:shadow-none print:break-inside-avoid print:p-3">
-                                                    <h3 className="text-xs sm:text-sm font-extrabold text-amber-950 flex items-center gap-1.5">
-                                                        <span>{directive.title}</span>
-                                                    </h3>
-                                                    <ul className="list-disc list-inside space-y-1 text-xs sm:text-sm text-amber-900/90 font-medium pl-1">
-                                                        {directive.points.map((pt, pIdx) => (
-                                                            <li key={pIdx} className="leading-relaxed">{pt}</li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
-
-                                {/* SECTION 04: Key Action Items & Ownership */}
-                                {fullMeetingDetail.actionItems && fullMeetingDetail.actionItems.length > 0 && (
-                                    <section className="mb-6 sm:mb-8 pb-5 sm:pb-6 print:mb-4 print:pb-2">
-                                        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4 print:break-after-avoid">
-                                            <h2 className="text-sm sm:text-base md:text-lg font-extrabold text-slate-900 flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
-                                                <span className="flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-600 text-white text-xs font-extrabold shadow-xs flex-shrink-0">
-                                                    04
-                                                </span>
-                                                <span className="truncate sm:overflow-visible">Action Items</span>
-                                            </h2>
-                                            <span className="text-[11px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-theme-action border border-emerald-200/80 flex-shrink-0 whitespace-nowrap shadow-2xs print:border-emerald-300">
-                                                {fullMeetingDetail.actionItems.length} Owners
-                                            </span>
-                                        </div>
-                                        
-                                        <div className="flex flex-col gap-3 sm:gap-3.5 print:gap-2.5">
-                                            {fullMeetingDetail.actionItems.map((item, idx) => {
-                                                const taskPoints = item.task
-                                                    ? item.task.split(';').map(t => t.trim()).filter(Boolean)
-                                                    : [];
-                                                const nameParts = (item.person || '').split('&')[0].trim().split(' ');
-                                                const initials = nameParts.length > 1
-                                                    ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase()
-                                                    : (item.person || 'U').substring(0, 2).toUpperCase();
-
-                                                return (
-                                                    <div 
-                                                        key={idx} 
-                                                        className="action-item w-full bg-emerald-50/40 border border-emerald-200/80 border-l-4 border-l-theme-action rounded-xl p-3.5 sm:p-4 shadow-2xs hover:bg-emerald-50/70 hover:shadow-xs transition-all flex flex-col justify-between gap-2.5 print:bg-emerald-50/40 print:border-emerald-300 print:shadow-none print:break-inside-avoid print:p-3"
-                                                    >
-                                                        {/* Person Info Badge */}
-                                                        <div className="flex items-center gap-2.5 pb-2 border-b border-emerald-200/60 flex-shrink-0">
-                                                            <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-100/90 text-emerald-900 font-extrabold text-xs flex items-center justify-center border border-emerald-300/60 shadow-2xs flex-shrink-0">
-                                                                {initials}
-                                                            </span>
-                                                            <div className="flex items-center justify-between gap-2 min-w-0 flex-1">
-                                                                <span className="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight truncate">
-                                                                    {item.person}
-                                                                </span>
-                                                                <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md flex-shrink-0">
-                                                                    {taskPoints.length > 1 ? `${taskPoints.length} Points` : 'Owner'}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Task List / Content */}
-                                                        <div className="min-w-0 pt-0.5">
-                                                            {taskPoints.length > 1 ? (
-                                                                <ul className="space-y-1.5 list-none">
-                                                                    {taskPoints.map((point, pIdx) => (
-                                                                        <li key={pIdx} className="flex items-start gap-2 text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                                                                            <span className="text-theme-action font-bold mt-0.5 select-none text-xs flex-shrink-0">▪</span>
-                                                                            <span>{point}</span>
-                                                                        </li>
-                                                                    ))}
-                                                                </ul>
-                                                            ) : (
-                                                                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                                                                    {item.task}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </section>
-                                )}
-
-                                {/* Print-Only Formal Report Footer */}
-                                <div className="hidden print:flex items-center justify-between pt-4 mt-6 border-t border-slate-300 text-[10px] text-slate-500 font-medium">
-                                    <span>Reach International Workflow Portal • Daily Operations Report</span>
-                                    <span>Confidential • Internal Distribution Only</span>
-                                </div>
-
-                                {/* Clean Divider */}
-                                <hr className="border-border-light my-6 sm:my-8 no-print" />
-
-                                {/* Document Footer Controls: Previous Day / Next Day */}
-                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 no-print">
-                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 w-full">
-                                        <button 
-                                            type="button"
-                                            className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-800 border border-border-light hover:bg-stage-bg hover:border-slate-400 active:scale-95 transition-all shadow-xs min-h-[44px] cursor-pointer"
-                                            onClick={() => {
-                                                setSelectedMeetingMeta(null);
-                                                setFullMeetingDetail(null);
-                                                scrollToTop();
-                                            }}
-                                        >
-                                            ← Back to Archive
-                                        </button>
-
-                                        {(prevMeeting || nextMeeting) && (
-                                            <div className="grid grid-cols-2 sm:flex items-center gap-2 flex-1 sm:flex-initial">
-                                                {prevMeeting ? (
-                                                    <button 
-                                                        type="button"
-                                                        className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-white text-slate-700 border border-border-light hover:bg-stage-bg hover:border-ribbon-4 hover:text-ribbon-4 active:scale-95 transition-all shadow-xs min-h-[44px] cursor-pointer"
-                                                        onClick={() => handleSelectMeeting(prevMeeting)}
-                                                        title={`Previous Day: ${formatDateDDMMYYYY(prevMeeting.date || prevMeeting.dateDisplay || prevMeeting.dateFormatted || prevMeeting.title)}`}
-                                                    >
-                                                        ← Previous Day
-                                                    </button>
-                                                ) : (
-                                                    <div className="hidden sm:block" />
-                                                )}
-                                                {nextMeeting ? (
-                                                    <button 
-                                                        type="button"
-                                                        className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-white text-slate-700 border border-border-light hover:bg-stage-bg hover:border-ribbon-4 hover:text-ribbon-4 active:scale-95 transition-all shadow-xs min-h-[44px] cursor-pointer"
-                                                        onClick={() => handleSelectMeeting(nextMeeting)}
-                                                        title={`Next Day: ${formatDateDDMMYYYY(nextMeeting.date || nextMeeting.dateDisplay || nextMeeting.dateFormatted || nextMeeting.title)}`}
-                                                    >
-                                                        Next Day →
-                                                    </button>
-                                                ) : (
-                                                    <div className="hidden sm:block" />
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </>
-                        )}
+                    {/* Right Column: 2026 Company Holiday & Indian Calendar */}
+                    <div 
+                        onWheel={(e) => e.stopPropagation()}
+                        className={`w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 flex flex-col min-h-0 overflow-y-auto pr-0.5 custom-scrollbar overscroll-contain ${
+                            activeDashboardTab === 'calendar' 
+                                ? 'flex' 
+                                : (showCalendarSidebar ? 'hidden lg:flex' : 'hidden')
+                        }`}
+                    >
+                        <HolidayCalendar 
+                            initialMonth={selectedMonth}
+                            initialDate={calendarSelectedDate}
+                            onClose={() => {
+                                setShowCalendarSidebar(false);
+                                setActiveDashboardTab('meetings');
+                            }}
+                        />
                     </div>
                 </div>
             </div>
-            ) : (
-                /* ========================================================= */
-                /* ARCHIVE DASHBOARD VIEW                                    */
-                /* ========================================================= */
-                <div 
-                    className="flex-1 min-h-0 max-w-[1440px] mx-auto w-full flex flex-col px-2.5 sm:px-4 md:px-6 lg:px-8 pt-3 sm:pt-4 pb-2 sm:pb-3 gap-2.5 overflow-hidden"
-                    onWheel={handleDashboardWheel}
+
+            {/* Floating Scroll-to-Top Button */}
+            {showScrollTop && (
+                <button
+                    type="button"
+                    onClick={scrollToTop}
+                    className="fixed bottom-5 right-5 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-900 text-white shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center cursor-pointer active:scale-95 animate-fade-in"
+                    title="Scroll to top"
+                    aria-label="Scroll to top"
                 >
-                    {/* 1. Sleek, Compact Heading Bar */}
-                    <div className="flex items-center justify-between gap-3 flex-shrink-0 pt-0.5">
-                        <div className="flex items-center gap-2.5 sm:gap-3">
-                            <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight whitespace-nowrap">
-                                Daily Meeting Report
-                            </h1>
-                            <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200/70">
-                                {totalMeetingsForYear} Total
-                            </span>
-                        </div>
-
-                        {/* Year Switcher / Selector */}
-                        <div className="flex items-center gap-2">
-                            {availableYears.length > 0 && (
-                                <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-border-light shadow-2xs">
-                                    {availableYears.map(y => {
-                                        const isSelectedYear = String(selectedYear) === String(y.year);
-                                        return (
-                                            <button
-                                                key={y.year}
-                                                type="button"
-                                                onClick={() => {
-                                                    setSelectedYear(y.year);
-                                                    if (y.months && y.months.length > 0) {
-                                                        setSelectedMonth(y.months[0].month);
-                                                    }
-                                                }}
-                                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                                                    isSelectedYear
-                                                        ? 'bg-slate-900 text-white shadow-xs'
-                                                        : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                                                }`}
-                                                aria-pressed={isSelectedYear}
-                                            >
-                                                {y.year}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                            <span className="sm:hidden text-xs font-semibold text-slate-500">
-                                {totalMeetingsForYear} Total
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* 2. Month Filter Pills Strip (or Search Indicator) */}
-                    {!isSearching ? (
-                        availableMonthsForYear.length > 0 && (
-                            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-0.5 flex-shrink-0">
-                                {availableMonthsForYear.map(m => {
-                                    const isSelected = selectedMonth === m.month;
-                                    return (
-                                        <button
-                                            key={m.month}
-                                            type="button"
-                                            onClick={() => setSelectedMonth(m.month)}
-                                            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-150 cursor-pointer min-h-[36px] select-none ${
-                                                isSelected
-                                                    ? 'bg-theme-breakdown text-white shadow-sm ring-2 ring-theme-breakdown/25 active:scale-[0.98]'
-                                                    : 'bg-white text-slate-600 border border-border-light hover:border-slate-300 hover:text-slate-900 hover:bg-slate-50 active:scale-[0.98]'
-                                            }`}
-                                            aria-pressed={isSelected}
-                                        >
-                                            <span>{m.name}</span>
-                                            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
-                                                isSelected 
-                                                    ? 'bg-white/25 text-white' 
-                                                    : 'bg-slate-100 text-slate-600'
-                                            }`}>
-                                                {m.meetingCount}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-
-                                {monthData && monthData.meetings && monthData.meetings.length > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={handleExportMonthExcel}
-                                        disabled={isExportingMonthExcel}
-                                        className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white text-emerald-800 border border-emerald-300 hover:bg-emerald-50 active:scale-95 transition-all shadow-2xs cursor-pointer flex-shrink-0 min-h-[36px]"
-                                        title={`Export all breakdowns for ${monthData.monthName || selectedMonth} ${selectedYear} to Excel`}
-                                    >
-                                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                            <polyline points="14 2 14 8 20 8"></polyline>
-                                            <line x1="8" y1="13" x2="16" y2="13"></line>
-                                            <line x1="8" y1="17" x2="16" y2="17"></line>
-                                        </svg>
-                                        <span>{isExportingMonthExcel ? 'Exporting Month...' : `Export ${monthData.monthName || ''} (Excel)`}</span>
-                                    </button>
-                                )}
-                            </div>
-                        )
-                    ) : (
-                        <div className="flex items-center justify-between gap-3 flex-shrink-0 bg-white px-3.5 py-2 rounded-xl border border-border-light shadow-2xs">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-xs font-bold text-slate-900 truncate">
-                                    Search Results for "{currentSearchQuery}"
-                                </span>
-                                <span className="text-xs font-semibold text-slate-500 flex-shrink-0">
-                                    ({searchResults.length} {searchResults.length === 1 ? 'match' : 'matches'})
-                                </span>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => updateSearchQuery('')}
-                                className="text-xs font-bold text-theme-breakdown hover:underline cursor-pointer flex-shrink-0"
-                            >
-                                Clear
-                            </button>
-                        </div>
-                    )}
-
-                    {/* 3. Monthly Meeting Stream / List Section */}
-                    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                        {/* Loading Month State - Skeleton Cards */}
-                        {isLoadingMonth && !isSearching && (
-                            <div className="flex-1 min-h-0 overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
-                                <div className="flex flex-col gap-2.5 pt-0.5 pb-4" role="status" aria-label="Loading meeting records">
-                                    {[1, 2, 3, 4, 5, 6, 7].map((idx) => (
-                                        <div 
-                                            key={idx}
-                                            className="bg-white border border-border-light rounded-xl p-3 sm:px-5 sm:py-3.5 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 animate-pulse min-h-[58px] sm:min-h-[54px]"
-                                        >
-                                            {/* Mobile Top Row Skeleton */}
-                                            <div className="flex sm:hidden items-center justify-between gap-2 pb-1 border-b border-slate-100/80">
-                                                <div className="flex items-center gap-1.5">
-                                                    <div className="w-2 h-2 rounded-full bg-slate-300"></div>
-                                                    <div className="w-20 h-3.5 bg-slate-200 rounded"></div>
-                                                </div>
-                                                <div className="w-16 h-3 bg-slate-100 rounded"></div>
-                                            </div>
-
-                                            {/* Desktop Left + Middle Skeleton */}
-                                            <div className="flex items-start sm:items-center gap-3 md:gap-4 min-w-0 flex-1">
-                                                <div className="hidden sm:flex items-center gap-2 min-w-[105px] flex-shrink-0">
-                                                    <div className="w-2 h-2 rounded-full bg-slate-300"></div>
-                                                    <div className="w-20 h-4 bg-slate-200 rounded"></div>
-                                                </div>
-                                                <span className="text-slate-200 select-none hidden sm:inline">│</span>
-                                                <div className="min-w-0 flex-1">
-                                                    <div className={`h-3.5 bg-slate-200/90 rounded ${idx % 2 === 0 ? 'w-4/5' : 'w-3/5'}`}></div>
-                                                </div>
-                                            </div>
-
-                                            {/* Badges Skeleton */}
-                                            <div className="flex items-center justify-between sm:justify-end gap-2 flex-shrink-0">
-                                                <div className="w-14 h-5 bg-blue-100/60 rounded-md"></div>
-                                                <div className="w-12 h-5 bg-teal-100/60 rounded-md"></div>
-                                                <div className="w-14 h-5 bg-emerald-100/60 rounded-md"></div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* List Items Stream */}
-                        {(!isLoadingMonth || isSearching) && (
-                            <div 
-                                ref={cardsContainerRef}
-                                tabIndex={0}
-                                aria-label="Meeting summaries list"
-                                onScroll={(e) => {
-                                    const scrolled = e.currentTarget.scrollTop > 4;
-                                    if (scrolled !== isCardsScrolled) {
-                                        setIsCardsScrolled(scrolled);
-                                    }
-                                }}
-                                className="flex-1 min-h-0 overflow-y-auto pr-1 sm:pr-2 overscroll-contain scroll-smooth focus:outline-none focus-visible:ring-1 focus-visible:ring-theme-breakdown/30 custom-scrollbar relative"
-                                style={{
-                                    WebkitOverflowScrolling: 'touch',
-                                    willChange: 'scroll-position',
-                                }}
-                            >
-                                {/* Cloud Effect: Top Scroll Frosted Blur Mask */}
-                                <div 
-                                    className={`top-blur-mask transition-opacity duration-200 ${isCardsScrolled ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} 
-                                    aria-hidden="true" 
-                                />
-
-                                <div className="flex flex-col gap-2.5 pt-0.5 pb-4">
-                                    {(isSearching ? searchResults : (monthData?.meetings || [])).map((meeting) => {
-                                    const shortDate = formatDateDDMMYYYY(meeting.date || meeting.dateDisplay || meeting.dateFormatted || meeting.title);
-                                    
-                                    if (meeting.isHoliday) {
-                                        return (
-                                            <div 
-                                                key={meeting.id} 
-                                                className="bg-amber-50/30 border border-amber-200/80 border-l-4 border-l-amber-500 rounded-xl p-3 sm:px-5 sm:py-3 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-h-[52px] select-none flex-shrink-0"
-                                                style={{
-                                                    contentVisibility: 'auto',
-                                                    containIntrinsicSize: 'auto 52px',
-                                                }}
-                                            >
-                                                {/* Mobile Top Row */}
-                                                <div className="flex sm:hidden items-center justify-between gap-2 pb-1 border-b border-amber-200/60">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                                                        <span className="text-xs font-black text-slate-900 tracking-tight">
-                                                            {shortDate}
-                                                        </span>
-                                                    </div>
-                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300/80">
-                                                        Operations Closed
-                                                    </span>
-                                                </div>
-
-                                                {/* Desktop Content & Mobile Focus */}
-                                                <div className="flex items-center gap-3 md:gap-4 min-w-0 flex-1">
-                                                    {/* Date Label (Desktop Only) */}
-                                                    <div className="hidden sm:flex items-center gap-2 min-w-[105px] flex-shrink-0">
-                                                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                                                        <span className="text-xs sm:text-sm font-black text-slate-900">
-                                                            {shortDate}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Separator (Desktop Only) */}
-                                                    <span className="text-amber-300 select-none hidden sm:inline">│</span>
-
-                                                    <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-950 font-bold text-xs border border-amber-300/70 shadow-2xs">
-                                                            🎉 Holiday: {meeting.holidayName || 'Holiday'}
-                                                        </span>
-                                                        <span className="text-xs text-amber-900/70 font-medium">
-                                                            Official holiday — offices & fleet operations closed
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Desktop Status Pill */}
-                                                <span className="hidden sm:inline-flex text-[11px] font-bold px-2.5 py-1 rounded-md bg-amber-100/80 text-amber-900 border border-amber-200 flex-shrink-0">
-                                                    No Meeting Held
-                                                </span>
-                                            </div>
-                                        );
-                                    }
-
-                                    if (meeting.notRecorded) {
-                                        return (
-                                            <div 
-                                                key={meeting.id} 
-                                                className="bg-amber-50/20 border border-amber-200/80 border-l-4 border-l-amber-500 rounded-xl p-3 sm:px-5 sm:py-3 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-h-[52px] select-none flex-shrink-0 cursor-default"
-                                                style={{
-                                                    contentVisibility: 'auto',
-                                                    containIntrinsicSize: 'auto 52px',
-                                                }}
-                                            >
-                                                {/* Mobile Top Row */}
-                                                <div className="flex sm:hidden items-center justify-between gap-2 pb-1 border-b border-amber-200/60">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                                                        <span className="text-xs font-black text-slate-900 tracking-tight">
-                                                            {shortDate}
-                                                        </span>
-                                                    </div>
-                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300/80">
-                                                        Internet Issue
-                                                    </span>
-                                                </div>
-
-                                                {/* Desktop Content & Mobile Focus */}
-                                                <div className="flex items-start sm:items-center gap-3 md:gap-4 min-w-0 flex-1">
-                                                    {/* Date Label (Desktop Only) */}
-                                                    <div className="hidden sm:flex items-center gap-2 min-w-[105px] flex-shrink-0">
-                                                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                                                        <span className="text-xs sm:text-sm font-black text-slate-900">
-                                                            {shortDate}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Separator (Desktop Only) */}
-                                                    <span className="text-amber-300 select-none hidden sm:inline">│</span>
-
-                                                    <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
-                                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-100/90 text-amber-950 font-bold text-xs border border-amber-300/70 w-fit flex-shrink-0">
-                                                            <svg className="w-3.5 h-3.5 text-amber-700 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                                <line x1="1" y1="1" x2="23" y2="23"></line>
-                                                                <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
-                                                                <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
-                                                                <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
-                                                                <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
-                                                                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
-                                                                <line x1="12" y1="20" x2="12.01" y2="20"></line>
-                                                            </svg>
-                                                            <span>Meeting Not Recorded</span>
-                                                        </span>
-                                                        <p className="text-xs text-slate-600 font-medium truncate">
-                                                            {meeting.focus || 'Conducted as scheduled; recording unavailable due to network disruption.'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                {/* Desktop Status Pill */}
-                                                <span className="hidden sm:inline-flex text-[11px] font-bold px-2.5 py-1 rounded-md bg-amber-100/80 text-amber-900 border border-amber-200 flex-shrink-0">
-                                                    Not Recorded
-                                                </span>
-                                            </div>
-                                        );
-                                    }
-
-                                    const isNoMeetingHeld = !meeting.notRecorded && (meeting.noMeetingHeld || (!meeting.isHoliday && (
-                                        meeting.breakdownCount === 0 && meeting.partsCount === 0 && meeting.actionItemsCount === 0
-                                    )));
-
-                                    if (isNoMeetingHeld) {
-                                        return (
-                                            <div 
-                                                key={meeting.id} 
-                                                className="bg-slate-50/50 border border-border-light border-l-4 border-l-slate-400 rounded-xl p-3 sm:px-5 sm:py-3 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-h-[52px] select-none flex-shrink-0 cursor-default"
-                                                style={{
-                                                    contentVisibility: 'auto',
-                                                    containIntrinsicSize: 'auto 52px',
-                                                }}
-                                            >
-                                                {/* Mobile Top Row */}
-                                                <div className="flex sm:hidden items-center justify-between gap-2 pb-1 border-b border-slate-200/60">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="w-2 h-2 rounded-full bg-slate-400"></span>
-                                                        <span className="text-xs font-black text-slate-900 tracking-tight">
-                                                            {shortDate}
-                                                        </span>
-                                                    </div>
-                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200/70 text-slate-700 border border-slate-300">
-                                                        Operations Active
-                                                    </span>
-                                                </div>
-
-                                                {/* Desktop Content & Mobile Focus */}
-                                                <div className="flex items-start sm:items-center gap-3 md:gap-4 min-w-0 flex-1">
-                                                    {/* Date Label (Desktop Only) */}
-                                                    <div className="hidden sm:flex items-center gap-2 min-w-[105px] flex-shrink-0">
-                                                        <span className="w-2 h-2 rounded-full bg-slate-400"></span>
-                                                        <span className="text-xs sm:text-sm font-black text-slate-900">
-                                                            {shortDate}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Separator (Desktop Only) */}
-                                                    <span className="text-slate-300 select-none hidden sm:inline">│</span>
-
-                                                    <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
-                                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold text-xs border border-slate-300/80 w-fit flex-shrink-0">
-                                                            🏢 Office Open • Routine Fleet Operations
-                                                        </span>
-                                                        <p className="text-xs text-slate-500 font-medium truncate">
-                                                            {meeting.focus || 'Routine site operations, fleet mobilization & preventive maintenance continued.'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                {/* Desktop Status Pill */}
-                                                <span className="hidden sm:inline-flex text-[11px] font-bold px-2.5 py-1 rounded-md bg-slate-100 text-slate-500 border border-slate-200 flex-shrink-0">
-                                                    No Meeting Held
-                                                </span>
-                                            </div>
-                                        );
-                                    }
-
-                                    return (
-                                        <div 
-                                            key={meeting.id} 
-                                            onClick={() => handleSelectMeeting(meeting)}
-                                            className="bg-white border border-border-light border-l-4 border-l-theme-breakdown rounded-xl p-3 sm:px-5 sm:py-3.5 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 cursor-pointer transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 group min-h-[58px] sm:min-h-[54px] flex-shrink-0"
-                                            style={{
-                                                contentVisibility: 'auto',
-                                                containIntrinsicSize: 'auto 64px',
-                                            }}
-                                        >
-                                            {/* MOBILE TOP BAR (Hidden on sm+) */}
-                                            <div className="flex sm:hidden items-center justify-between gap-2 pb-1 border-b border-slate-100/80">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="w-2 h-2 rounded-full bg-theme-breakdown"></span>
-                                                    <span className="text-xs font-black text-slate-900 tracking-tight group-hover:text-theme-breakdown transition-colors">
-                                                        {shortDate}
-                                                    </span>
-                                                </div>
-                                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-theme-breakdown group-hover:translate-x-0.5 transition-transform">
-                                                    View Report
-                                                    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-theme-breakdown" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                                                        <polyline points="12 5 19 12 12 19"></polyline>
-                                                    </svg>
-                                                </span>
-                                            </div>
-
-                                            {/* DESKTOP LEFT + MIDDLE (On mobile: focus gets full width!) */}
-                                            <div className="flex items-start sm:items-center gap-3 md:gap-4 min-w-0 flex-1">
-                                                {/* Date Label (Desktop Only) */}
-                                                <div className="hidden sm:flex items-center gap-2 min-w-[105px] flex-shrink-0">
-                                                    <span className="w-2 h-2 rounded-full bg-theme-breakdown"></span>
-                                                    <span className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-theme-breakdown transition-colors">
-                                                        {shortDate}
-                                                    </span>
-                                                </div>
-
-                                                {/* Separator (Desktop Only) */}
-                                                <span className="text-slate-200 select-none hidden sm:inline">│</span>
-
-                                                {/* Focus Description / Summary */}
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="text-xs sm:text-sm text-slate-700 font-medium group-hover:text-slate-950 leading-relaxed line-clamp-2">
-                                                        {meeting.focus || 'Operational Meeting & Fleet Review'}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            {/* METRIC BADGES & CHEVRON */}
-                                            <div className="flex items-center justify-between sm:justify-end gap-2.5 flex-shrink-0 pt-1.5 sm:pt-0">
-                                                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                                                    {meeting.breakdownCount > 0 && (
-                                                        <span className="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-theme-breakdown border border-blue-200/80 shadow-2xs flex items-center gap-1">
-                                                            <span>🔧</span>
-                                                            <span>{meeting.breakdownCount}</span>
-                                                            <span className="hidden md:inline font-semibold text-[10px] text-blue-600">Breakdowns</span>
-                                                        </span>
-                                                    )}
-                                                    {meeting.partsCount > 0 && (
-                                                        <span className="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md bg-teal-50 text-theme-parts border border-teal-200/80 shadow-2xs flex items-center gap-1">
-                                                            <span>📦</span>
-                                                            <span>{meeting.partsCount}</span>
-                                                            <span className="hidden md:inline font-semibold text-[10px] text-teal-600">Parts</span>
-                                                        </span>
-                                                    )}
-                                                    {meeting.actionItemsCount > 0 && (
-                                                        <span className="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-theme-action border border-emerald-200/80 shadow-2xs flex items-center gap-1">
-                                                            <span>✅</span>
-                                                            <span>{meeting.actionItemsCount}</span>
-                                                            <span className="hidden md:inline font-semibold text-[10px] text-emerald-600">Actions</span>
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                {/* Desktop CTA Arrow */}
-                                                <span className="hidden sm:inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-50 group-hover:bg-blue-50 text-slate-400 group-hover:text-theme-breakdown border border-slate-200/70 group-hover:border-blue-200 transition-all duration-200 group-hover:translate-x-0.5">
-                                                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                                                        <polyline points="12 5 19 12 12 19"></polyline>
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-
-                                {/* Clean End of List Indicator */}
-                                {(isSearching ? searchResults : (monthData?.meetings || [])).length > 0 && (
-                                    <div className="pt-2 pb-2 flex items-center justify-center gap-2 text-xs font-semibold text-slate-400 select-none flex-shrink-0">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                                        <span>
-                                            {isSearching 
-                                                ? `End of search results (${searchResults.length} ${searchResults.length === 1 ? 'record' : 'records'})` 
-                                                : `All ${monthData?.meetings?.length || 0} records loaded for ${displayMonthName} ${selectedYear || '2026'}`}
-                                        </span>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                        {/* Empty Search State */}
-                        {isSearching && searchResults.length === 0 && (
-                            <div className="flex-1 flex items-center justify-center p-4">
-                                <div className="text-center py-10 px-4 bg-white border border-border-light rounded-xl max-w-md mx-auto shadow-xs">
-                                    <span className="text-4xl mb-3 block">🔍</span>
-                                    <h3 className="text-base font-extrabold text-slate-900 mb-1">No meeting summaries found</h3>
-                                    <p className="text-xs sm:text-sm text-slate-500 mb-4">No summaries matched "{currentSearchQuery}".</p>
-                                    <button 
-                                        className="inline-flex items-center justify-center px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-white text-slate-800 border border-border-light hover:bg-stage-bg active:scale-95 transition-all shadow-xs min-h-[44px]" 
-                                        onClick={() => updateSearchQuery('')}
-                                    >
-                                        Clear Search
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="18 15 12 9 6 15" />
+                    </svg>
+                </button>
             )}
 
-            {/* Floating Scroll-to-Top Action Button */}
-            <button
-                type="button"
-                onClick={scrollToTop}
-                className={`fixed bottom-5 right-5 sm:bottom-7 sm:right-7 z-40 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white border border-border-light shadow-card hover:shadow-hover text-slate-700 hover:text-white hover:bg-gradient-to-r hover:from-ribbon-4 hover:to-ribbon-3 flex items-center justify-center transition-all duration-300 transform active:scale-90 group min-w-[44px] min-h-[44px] ${
-                    showScrollTop 
-                        ? 'opacity-100 translate-y-0 pointer-events-auto' 
-                        : 'opacity-0 translate-y-4 pointer-events-none'
-                }`}
-                title="Scroll back to top"
-                aria-label="Scroll back to top"
-            >
-                <svg viewBox="0 0 24 24" className="w-5 h-5 transition-transform group-hover:-translate-y-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="18 15 12 9 6 15"></polyline>
-                </svg>
-            </button>
+            {/* Text Selection Quick Highlighter Popup */}
+            <TextHighlightPopup
+                selectionPopup={selectionPopup}
+                onApplyHighlight={applyTextHighlight}
+                onClose={() => setSelectionPopup(null)}
+            />
 
-            {/* Inline Text Selection Quick-Highlight Floating Popup */}
-            {selectionPopup && typeof document !== 'undefined' && createPortal(
-                <div 
-                    className="fixed z-[9995] -translate-x-1/2 -translate-y-full mb-2 flex items-center gap-1.5 px-3 py-1.5 bg-white/95 text-slate-800 rounded-xl shadow-card border border-slate-200/90 backdrop-blur-md animate-fade-in select-none"
-                    style={{ left: `${selectionPopup.x}px`, top: `${selectionPopup.y}px` }}
-                >
-                    <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Highlight:</span>
-                    <button 
-                        type="button" 
-                        onClick={() => applyTextHighlight('yellow')}
-                        className="w-5 h-5 rounded-full bg-yellow-400 hover:scale-115 active:scale-95 transition-transform border border-amber-300 cursor-pointer shadow-2xs"
-                        title="Highlight Yellow"
-                        aria-label="Highlight Yellow"
-                    />
-                    <button 
-                        type="button" 
-                        onClick={() => applyTextHighlight('green')}
-                        className="w-5 h-5 rounded-full bg-emerald-400 hover:scale-115 active:scale-95 transition-transform border border-emerald-300 cursor-pointer shadow-2xs"
-                        title="Highlight Green"
-                        aria-label="Highlight Green"
-                    />
-                    <button 
-                        type="button" 
-                        onClick={() => applyTextHighlight('cyan')}
-                        className="w-5 h-5 rounded-full bg-cyan-400 hover:scale-115 active:scale-95 transition-transform border border-cyan-300 cursor-pointer shadow-2xs"
-                        title="Highlight Cyan"
-                        aria-label="Highlight Cyan"
-                    />
-                    <button 
-                        type="button" 
-                        onClick={() => applyTextHighlight('pink')}
-                        className="w-5 h-5 rounded-full bg-pink-400 hover:scale-115 active:scale-95 transition-transform border border-pink-300 cursor-pointer shadow-2xs"
-                        title="Highlight Pink"
-                        aria-label="Highlight Pink"
-                    />
-                    <div className="w-[1px] h-3.5 bg-slate-200 mx-1" />
-                    <button 
-                        type="button" 
-                        onClick={() => applyTextHighlight('clear')}
-                        className="px-2 py-0.5 text-[11px] font-bold text-slate-600 hover:text-rose-600 rounded hover:bg-slate-100 transition-colors cursor-pointer"
-                        title="Remove Highlight"
-                    >
-                        Clear
-                    </button>
-                    <button 
-                        type="button" 
-                        onClick={() => setSelectionPopup(null)}
-                        className="px-1 text-slate-400 hover:text-slate-700 text-xs font-bold cursor-pointer transition-colors"
-                        title="Close popup"
-                    >
-                        ✕
-                    </button>
-                </div>,
-                document.body
+            {/* PowerPoint-style Presentation Mode Overlay */}
+            {isPresentationMode && activeMeetingDoc && (
+                <PresentationOverlay
+                    containerRef={pageContainerRef}
+                    contentRef={documentCardRef}
+                    meetingTitle={activeMeetingDoc.title || activeMeetingDoc.dateFormatted || 'Daily Operational Meeting'}
+                    onClose={() => setIsPresentationMode(false)}
+                />
             )}
         </div>
     );

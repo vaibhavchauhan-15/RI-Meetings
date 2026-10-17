@@ -10,7 +10,9 @@
     "db:seed": "node scripts/seed-supabase.js",
     "db:migrate": "node scripts/apply-migration.js",
     "meeting:sync": "node scripts/sync-supabase.js",
-    "sync:supabase": "node scripts/sync-supabase.js"
+    "sync:supabase": "node scripts/sync-supabase.js",
+    "test": "node scripts/verify-holidays.js && node scripts/test-search.js",
+    "test:visual": "node scripts/test-visual-calendar.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.0",
@@ -28,6 +30,7 @@
     "playwright": "^1.62.1",
     "postcss": "^8.5.26",
     "tailwindcss": "^3.4.19",
+    "typescript": "^7.0.2",
     "vite": "^5.4.10"
   }
 }

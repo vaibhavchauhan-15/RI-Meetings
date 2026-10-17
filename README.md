@@ -346,54 +346,46 @@ Located in [`src/data/reportsData.js`](file:///c:/Users/vaibh/PROGRAMMING/PROJEC
 
 ```
 Reach-International-Workflow/
-├── .agent/                    # Antigravity agent configuration & rules
-├── .agents/                   # Local multi-agent skills and workflow memory
-├── public/                    # Static public assets
-│   ├── apple-touch-icon.png   # iOS home screen web app icon (180x180)
-│   ├── favicon.ico            # Root favicon
-│   ├── favicon-96x96.png      # High-DPI browser tab favicon
-│   ├── favicon.svg            # Scalable vector favicon
-│   ├── site.webmanifest       # PWA & Web App Manifest
-│   ├── web-app-manifest-*.png # 192px and 512px app icons
-│   └── images/                # Local SOP flow images & diagrams
-├── scripts/
-│   ├── generate-meeting-indexes.js # Build-time generator for indexes & daily JSONs
-│   └── test-search.js         # Search engine automated verification suite
+├── public/                    # Static public assets (logo.png, favicons, manifests)
+├── scripts/                   # Automated CLI pipelines, ingestion & verification
+│   ├── sync-supabase.js       # Universal atomic daily meeting ingestion & verification script
+│   ├── verify-holidays.js     # 200-test assertion suite for 2026 calendar & holidays
+│   ├── test-search.js         # Multi-token scoring search engine unit test suite
+│   ├── test-visual-calendar.js # Playwright visual & interactive cross-viewport test suite
+│   └── seed-supabase.js       # Historical database seeder
 ├── src/
-│   ├── components/            # Modular React UI components
-│   │   ├── CoverSlide.jsx     # Overview cover slide & presentation starter
-│   │   ├── FlowNodeCard.jsx   # Individual procedural flowchart card
-│   │   ├── Footer.jsx         # Presentation footer with slide dots & next/prev
-│   │   ├── Header.jsx         # Sticky header with search, walkthrough & deck controls
-│   │   ├── LandingPage.jsx    # Portal landing hero & hub switcher
-│   │   ├── MeetingDetailModal.jsx # Full-screen modal for meeting summaries
-│   │   ├── MeetingSummariesPage.jsx # Archive Dashboard & clean document view
-│   │   ├── NodeDetailModal.jsx    # Zoom modal for flowchart nodes
-│   │   ├── ReportDetailModal.jsx  # Detail modal for operational reports
-│   │   ├── ReportsPage.jsx        # SOP reports & knowledge base directory
-│   │   └── SlideDeckGrid.jsx      # Quick-jump slide index overview grid
-│   ├── data/                  # Centralized business data models & assets (Single Source of Truth)
-│   │   ├── meetings/          # Centralized daily meetings & hierarchical indexes
-│   │   │   ├── years.json     # High-level year & month tree with meeting counts
-│   │   │   ├── search-index.json # Pre-built lightweight full-text search index
-│   │   │   └── YYYY/MM/       # Monthly indexes & individual DD.json daily meetings
-│   │   ├── reportsData.js     # SOP reports, metrics & department audits
-│   │   └── workflowsData.js   # 11 SOP workflow chapters & flowchart node definitions
-│   ├── utils/
-│   │   ├── meetingDataService.js # Centralized module data loader & search engine
-│   │   └── meetingUtils.js    # WhatsApp/Slack text formatting & clipboard helpers
-│   ├── App.jsx                # Application root with Agentation dev tools
-│   ├── WorkflowPresentation.jsx # Main state coordinator, router & event listener
-│   ├── index.css              # Global styles, scrollbar styling & chevron clip paths
-│   └── main.jsx               # React 18 DOM mount point
-├── AGENTS.md                  # Strict AI agent rules & design system enforcement
+│   ├── components/
+│   │   ├── layout/            # Shared layout components (Navbar.jsx)
+│   │   ├── ui/                # Generic reusable UI primitives
+│   │   │   ├── Badge.jsx      # Role badges, status pills, holiday tags
+│   │   │   ├── Button.jsx     # Reach button hierarchies (.btn-primary, .btn-outline, etc.)
+│   │   │   ├── ErrorBoundary.jsx # React production error boundary with retry UI
+│   │   │   └── Skeleton.jsx   # Animated skeleton loaders for cards and documents
+│   │   ├── MeetingShareMenu.jsx # Meeting link sharing & Web Share API menu
+│   │   ├── MeetingSummariesPage.jsx # Modular dashboard orchestrator
+│   │   ├── Navbar.jsx         # App header with brand logo & fluid search bar
+│   │   └── PresentationOverlay.jsx # PowerPoint-style 60fps canvas presentation overlay
+│   ├── features/
+│   │   ├── holidays/          # 2026 Indian & Company Holiday Calendar feature
+│   │   │   ├── components/    # HolidayCalendar, CalendarGrid, CalendarHeader, HolidayDetails, UpcomingHolidays
+│   │   │   └── data/          # companyHolidays2026.js (single typed source of truth)
+│   │   └── meeting-reports/   # Daily Operational Meeting Reports feature
+│   │       ├── components/    # BreakdownCard, BreakdownSection, PartsSection, DirectivesSection, ActionItemsSection, MeetingCard, MeetingList, MeetingDetailDocument, MonthFilterBar, ChronologicalNav, TextHighlightPopup
+│   │       ├── hooks/         # useMeetingData.js, useMeetingUrlSync.js, useTextHighlighter.js
+│   │       ├── services/      # meetingService.js, excelExportService.js (lazy on-demand ExcelJS)
+│   │       └── utils/         # breakdownNormalizer.js, meetingDateUtils.js, meetingFormatters.js, searchEngine.js
+│   ├── lib/
+│   │   ├── config/            # env.js (validated client configuration, zero hardcoded fallback secrets)
+│   │   ├── errors/            # AppError.js (DatabaseError, NotFoundError, ValidationError, ExportError)
+│   │   └── supabase/          # client.js (clean Supabase client factory)
+│   ├── utils/                 # Backward-compatibility alias wrappers for external scripts
+│   ├── App.jsx                # Application root
+│   ├── index.css              # Design tokens & utility classes
+│   └── main.jsx               # Entry point wrapped with ErrorBoundary
+├── supabase/                  # PostgreSQL schema, migrations & Deno edge function webhook
+├── AGENTS.md / GEMINI.md      # Strict AI agent rules & design system enforcement
 ├── design.md                  # Comprehensive Design System & Specification v2.1.0
-├── GEMINI.md                  # Gemini workspace constraints & guidelines
-├── index.html                 # HTML5 template with font preconnects & meta tags
 ├── package.json               # Dependencies, scripts, and project metadata
-├── postcss.config.js          # PostCSS configuration with Tailwind & Autoprefixer
-├── tailwind.config.js         # Tailwind theme extension, custom colors & safelist
-├── vercel.json                # Vercel SPA routing rewrite configuration
 └── vite.config.js             # Vite build pipeline & vendor chunking rules
 ```
 
@@ -403,36 +395,57 @@ Reach-International-Workflow/
 
 ### Prerequisites
 - **Node.js**: Version `18.0.0` or higher
-- **npm**: Version `9.0.0` or higher (or `pnpm` / `yarn`)
+- **npm**: Version `9.0.0` or higher
+
+### Environment Configuration
+
+Create a `.env` file in the project root based on `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Ensure the following variables are configured:
+
+```env
+# Client-Side (Vite)
+VITE_SUPABASE_URL=https://<your-project>.supabase.co
+VITE_SUPABASE_ANON_KEY=<your-anon-key>
+
+# Server-Side Ingestion Scripts
+SUPABASE_URL=https://<your-project>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+```
 
 ### Installation
 
-Clone the repository and install project dependencies:
-
 ```bash
-# Clone repository
-git clone https://github.com/vaibhavchauhan-15/Reach-International-Workflow.git
-
-# Navigate to project directory
-cd Reach-International-Workflow
-
-# Install dependencies
 npm install
 ```
 
 ### Running Locally
 
-Start the Vite development server with Hot Module Replacement (HMR):
-
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser to view the application.
+### Automated Testing
+
+Run the full automated test suite (holiday calculations, calendar rules & search scoring algorithms):
+
+```bash
+npm test
+```
+
+Run Playwright visual & interactive cross-viewport test suite:
+
+```bash
+npm run test:visual
+```
 
 ### Building for Production
 
-Compile and bundle the application into the `dist/` directory with code splitting and minification:
+Compile and bundle the application into `dist/` with automated vendor chunking and lazy on-demand ExcelJS:
 
 ```bash
 npm run build
