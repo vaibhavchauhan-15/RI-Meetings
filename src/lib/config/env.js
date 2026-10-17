@@ -54,6 +54,9 @@ function require_path() {
     return { resolve: (...args) => args.join('/') };
 }
 
+export const DEFAULT_SUPABASE_URL = 'https://mwtfftedrtxiegawgssf.supabase.co';
+export const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13dGZmdGVkcnR4aWVnYXdnc3NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNTY4NDMsImV4cCI6MjEwNjgzMjg0M30.yF6ql4PUqURv-ahh7MHGwsdG6rvxah_lfLmSKy7fOFo';
+
 function getEnvVariable(key, fallback = undefined) {
     if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key] !== undefined) {
         return import.meta.env[key];
@@ -68,16 +71,29 @@ function getEnvVariable(key, fallback = undefined) {
     return fallback;
 }
 
+// Statically read Vite environment variables with public production fallback
+const resolvedSupabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
+    getEnvVariable('VITE_SUPABASE_URL') ||
+    getEnvVariable('SUPABASE_URL') ||
+    DEFAULT_SUPABASE_URL;
+
+const resolvedSupabaseAnonKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) ||
+    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY) ||
+    getEnvVariable('VITE_SUPABASE_ANON_KEY') ||
+    getEnvVariable('VITE_SUPABASE_PUBLISHABLE_KEY') ||
+    getEnvVariable('SUPABASE_ANON_KEY') ||
+    DEFAULT_SUPABASE_ANON_KEY;
+
 export const env = Object.freeze({
     // Supabase Client Settings (Public Anon Key only)
-    VITE_SUPABASE_URL: getEnvVariable('VITE_SUPABASE_URL', getEnvVariable('SUPABASE_URL', '')),
-    VITE_SUPABASE_ANON_KEY: getEnvVariable('VITE_SUPABASE_ANON_KEY', ''),
-    VITE_SUPABASE_PUBLISHABLE_KEY: getEnvVariable('VITE_SUPABASE_PUBLISHABLE_KEY', ''),
+    VITE_SUPABASE_URL: resolvedSupabaseUrl,
+    VITE_SUPABASE_ANON_KEY: resolvedSupabaseAnonKey,
+    VITE_SUPABASE_PUBLISHABLE_KEY: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY) || getEnvVariable('VITE_SUPABASE_PUBLISHABLE_KEY', ''),
 
     // Environment info
-    NODE_ENV: getEnvVariable('MODE', getEnvVariable('NODE_ENV', 'production')),
-    IS_DEV: getEnvVariable('DEV', false) || getEnvVariable('NODE_ENV') === 'development',
-    IS_PROD: getEnvVariable('PROD', true) || getEnvVariable('NODE_ENV') === 'production',
+    NODE_ENV: (typeof import.meta !== 'undefined' && import.meta.env?.MODE) || getEnvVariable('MODE', getEnvVariable('NODE_ENV', 'production')),
+    IS_DEV: (typeof import.meta !== 'undefined' && Boolean(import.meta.env?.DEV)) || getEnvVariable('DEV', false) || getEnvVariable('NODE_ENV') === 'development',
+    IS_PROD: (typeof import.meta !== 'undefined' && Boolean(import.meta.env?.PROD)) || getEnvVariable('PROD', true) || getEnvVariable('NODE_ENV') === 'production',
 });
 
 /**

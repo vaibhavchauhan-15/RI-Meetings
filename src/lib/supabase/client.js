@@ -6,22 +6,16 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { env, validateClientEnv } from '../config/env.js';
+import { env, validateClientEnv, DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_ANON_KEY } from '../config/env.js';
 
 // Validate configuration on initialization
 validateClientEnv();
 
-const supabaseUrl = env.VITE_SUPABASE_URL || (typeof process !== 'undefined' ? process.env.SUPABASE_URL : '') || 'https://placeholder.supabase.co';
+const supabaseUrl = env.VITE_SUPABASE_URL || (typeof process !== 'undefined' ? process.env.SUPABASE_URL : '') || DEFAULT_SUPABASE_URL;
 const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || 
     env.VITE_SUPABASE_PUBLISHABLE_KEY || 
     (typeof process !== 'undefined' ? (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY) : '') ||
-    'anon-key-placeholder';
-
-if (!env.VITE_SUPABASE_ANON_KEY && !env.VITE_SUPABASE_PUBLISHABLE_KEY) {
-    if (env.IS_DEV) {
-        console.warn('[Supabase Client] Missing Supabase Anon Key in environment.');
-    }
-}
+    DEFAULT_SUPABASE_ANON_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
