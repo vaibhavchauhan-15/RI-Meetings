@@ -11,6 +11,8 @@ import {
     EVENTS_BY_DATE_2026 
 } from '../data/companyHolidays2026';
 
+import { useHolidayCalendar } from '../hooks/useHolidayCalendar.js';
+
 /**
  * HolidayCalendar Component
  * Production-ready 2026 Indian Festival & Company Holiday Calendar for Reach International.
@@ -22,95 +24,19 @@ export default function HolidayCalendar({
     onClose,      // optional close callback when used in a mobile drawer or modal
     className = ''
 }) {
-    // Determine sensible default month
-    const defaultMonth = useMemo(() => {
-        if (initialMonth) return parseInt(initialMonth, 10);
-        const now = new Date();
-        if (now.getFullYear() === 2026) {
-            return now.getMonth() + 1;
-        }
-        return 1;
-    }, [initialMonth]);
-
-    const [currentYear] = useState(2026);
-    const [currentMonth, setCurrentMonth] = useState(defaultMonth);
-    const [selectedDate, setSelectedDate] = useState(() => {
-        if (initialDate && initialDate.startsWith('2026-')) return initialDate;
-        // Default to first holiday or event of default month if exists
-        const monthHolidays = getHolidaysForMonth(defaultMonth, 2026);
-        if (monthHolidays.length > 0) return monthHolidays[0].date;
-        const monthEvents = getEventsForMonth(defaultMonth, 2026);
-        if (monthEvents.length > 0) return monthEvents[0].date;
-        return `2026-${String(defaultMonth).padStart(2, '0')}-01`;
+    const {
+        currentYear,
+        currentMonth,
+        selectedDate,
+        handlePrevMonth,
+        handleNextMonth,
+        handleSelectDate,
+        handleNavigateMonth
+    } = useHolidayCalendar({
+        initialMonth,
+        initialDate,
+        year: 2026
     });
-
-    // Sync if initialMonth changes externally
-    useEffect(() => {
-        if (initialMonth) {
-            const m = parseInt(initialMonth, 10);
-            if (m >= 1 && m <= 12 && m !== currentMonth) {
-                setCurrentMonth(m);
-                const monthHolidays = getHolidaysForMonth(m, 2026);
-                if (monthHolidays.length > 0) {
-                    setSelectedDate(monthHolidays[0].date);
-                } else {
-                    const monthEvents = getEventsForMonth(m, 2026);
-                    if (monthEvents.length > 0) {
-                        setSelectedDate(monthEvents[0].date);
-                    } else {
-                        setSelectedDate(`2026-${String(m).padStart(2, '0')}-01`);
-                    }
-                }
-            }
-        }
-    }, [initialMonth]);
-
-    // Month Navigation: smoothly traverses Jan - Dec with wrapping
-    const handlePrevMonth = useCallback(() => {
-        setCurrentMonth(prev => {
-            const next = prev === 1 ? 12 : prev - 1;
-            const holidays = getHolidaysForMonth(next, currentYear);
-            if (holidays.length > 0) {
-                setSelectedDate(holidays[0].date);
-            } else {
-                const events = getEventsForMonth(next, currentYear);
-                setSelectedDate(events.length > 0 ? events[0].date : `2026-${String(next).padStart(2, '0')}-01`);
-            }
-            return next;
-        });
-    }, [currentYear]);
-
-    const handleNextMonth = useCallback(() => {
-        setCurrentMonth(prev => {
-            const next = prev === 12 ? 1 : prev + 1;
-            const holidays = getHolidaysForMonth(next, currentYear);
-            if (holidays.length > 0) {
-                setSelectedDate(holidays[0].date);
-            } else {
-                const events = getEventsForMonth(next, currentYear);
-                setSelectedDate(events.length > 0 ? events[0].date : `2026-${String(next).padStart(2, '0')}-01`);
-            }
-            return next;
-        });
-    }, [currentYear]);
-
-    // Date selection handler
-    const handleSelectDate = useCallback((isoDate) => {
-        setSelectedDate(isoDate);
-        if (isoDate) {
-            const parts = isoDate.split('-');
-            const m = parseInt(parts[1], 10);
-            if (m !== currentMonth && m >= 1 && m <= 12) {
-                setCurrentMonth(m);
-            }
-        }
-    }, [currentMonth]);
-
-    const handleNavigateMonth = useCallback((monthInt, yearInt) => {
-        if (yearInt === 2026 && monthInt >= 1 && monthInt <= 12) {
-            setCurrentMonth(monthInt);
-        }
-    }, []);
 
     return (
         <aside 
