@@ -1865,209 +1865,28 @@ export const EVENTS_BY_DATE_2026 = Object.freeze(
     }, {})
 );
 
-export const MONTH_NAMES = Object.freeze([
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-]);
+// Re-export date constants and math from specialized utils
+export {
+    MONTH_NAMES,
+    MONTH_SHORT_NAMES,
+    WEEKDAY_LABELS,
+    RELIGION_FILTER_TABS,
+    getDaysInMonth,
+    getFirstDayOfWeek,
+    formatFullHolidayDate,
+    getRelativeHolidayStatus
+} from '../utils/holidayDateUtils.js';
 
-export const MONTH_SHORT_NAMES = Object.freeze([
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-]);
+// Re-export query functions from specialized service
+export {
+    isCompanyHoliday,
+    hasEvent,
+    getHolidayForDate,
+    getEventsForDate,
+    getDayCalendarInfo,
+    getHolidaysForMonth,
+    getEventsForMonth,
+    getUpcomingEvents,
+    getUpcomingHolidays
+} from '../services/holidayService.js';
 
-export const WEEKDAY_LABELS = Object.freeze([
-    { full: 'Sunday', short: 'Sun', letter: 'S' },
-    { full: 'Monday', short: 'Mon', letter: 'M' },
-    { full: 'Tuesday', short: 'Tue', letter: 'T' },
-    { full: 'Wednesday', short: 'Wed', letter: 'W' },
-    { full: 'Thursday', short: 'Thu', letter: 'T' },
-    { full: 'Friday', short: 'Fri', letter: 'F' },
-    { full: 'Saturday', short: 'Sat', letter: 'S' }
-]);
-
-export const RELIGION_FILTER_TABS = Object.freeze([
-    { id: 'all', label: 'All', icon: '🗓️' },
-    { id: 'company', label: 'Company (15)', icon: '🟢' },
-    { id: 'Hindu', label: 'Hindu', icon: '🕉️' },
-    { id: 'Islamic', label: 'Muslim', icon: '☪️' },
-    { id: 'Sikh', label: 'Sikh', icon: 'ੴ' },
-    { id: 'Christian', label: 'Christian', icon: '✝️' },
-    { id: 'Jain', label: 'Jain', icon: '卐' },
-    { id: 'Buddhist', label: 'Buddhist', icon: '☸️' },
-    { id: 'National', label: 'National', icon: '🇮🇳' }
-]);
-
-/**
- * Checks if a given date string is an official company holiday.
- * Safe from UTC timezone shift.
- */
-export function isCompanyHoliday(dateStr) {
-    if (!dateStr) return false;
-    const cleanDate = String(dateStr).trim().slice(0, 10);
-    return Boolean(HOLIDAYS_BY_DATE_2026[cleanDate]);
-}
-
-/**
- * Checks if a date has any festival or event (working day or holiday).
- */
-export function hasEvent(dateStr) {
-    if (!dateStr) return false;
-    const cleanDate = String(dateStr).trim().slice(0, 10);
-    return Boolean(EVENTS_BY_DATE_2026[cleanDate] && EVENTS_BY_DATE_2026[cleanDate].length > 0);
-}
-
-/**
- * Returns the company holiday object for a given date, or null.
- */
-export function getHolidayForDate(dateStr) {
-    if (!dateStr) return null;
-    const cleanDate = String(dateStr).trim().slice(0, 10);
-    return HOLIDAYS_BY_DATE_2026[cleanDate] || null;
-}
-
-/**
- * Returns all festivals and events for a given date (array).
- */
-export function getEventsForDate(dateStr) {
-    if (!dateStr) return [];
-    const cleanDate = String(dateStr).trim().slice(0, 10);
-    return EVENTS_BY_DATE_2026[cleanDate] || [];
-}
-
-/**
- * Unified day summary info helper for calendar rendering.
- */
-export function getDayCalendarInfo(dateStr) {
-    if (!dateStr) return null;
-    const cleanDate = String(dateStr).trim().slice(0, 10);
-    const companyHoliday = HOLIDAYS_BY_DATE_2026[cleanDate] || null;
-    const events = EVENTS_BY_DATE_2026[cleanDate] || [];
-    const isHoliday = Boolean(companyHoliday);
-    const hasEvents = events.length > 0;
-
-    let statusType = 'regular';
-    if (isHoliday) {
-        statusType = 'company-holiday';
-    } else if (hasEvents) {
-        statusType = 'festival-event';
-    }
-
-    return {
-        date: cleanDate,
-        isCompanyHoliday: isHoliday,
-        companyHoliday,
-        events,
-        hasEvents,
-        statusType,
-        primaryName: companyHoliday ? companyHoliday.name : (events[0]?.name || null)
-    };
-}
-
-/**
- * Returns all company holidays occurring in a given month (1-12) of 2026.
- */
-export function getHolidaysForMonth(monthInt, yearInt = 2026) {
-    if (yearInt !== 2026) return [];
-    return COMPANY_HOLIDAYS_2026.filter(h => h.month === Number(monthInt));
-}
-
-/**
- * Returns all festivals and events occurring in a given month (1-12) of 2026,
- * with optional religion/category filter.
- */
-export function getEventsForMonth(monthInt, yearInt = 2026, categoryFilter = 'all') {
-    if (yearInt !== 2026) return [];
-    const m = Number(monthInt);
-    let list = ALL_INDIAN_CALENDAR_EVENTS_2026.filter(ev => ev.month === m);
-    
-    if (categoryFilter === 'company') {
-        return list.filter(ev => ev.isCompanyHoliday);
-    }
-    if (categoryFilter && categoryFilter !== 'all') {
-        return list.filter(ev => ev.category === categoryFilter || ev.religion === categoryFilter);
-    }
-    return list;
-}
-
-/**
- * Returns upcoming events and holidays relative to a given reference date.
- */
-export function getUpcomingEvents(referenceDateStr, limit = 6, categoryFilter = 'all') {
-    let todayStr;
-    if (referenceDateStr) {
-        todayStr = String(referenceDateStr).slice(0, 10);
-    } else {
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = String(now.getMonth() + 1).padStart(2, '0');
-        const d = String(now.getDate()).padStart(2, '0');
-        todayStr = `${y}-${m}-${d}`;
-    }
-
-    let source = ALL_INDIAN_CALENDAR_EVENTS_2026;
-    if (categoryFilter === 'company') {
-        source = COMPANY_HOLIDAYS_2026;
-    } else if (categoryFilter && categoryFilter !== 'all') {
-        source = source.filter(ev => ev.category === categoryFilter || ev.religion === categoryFilter);
-    }
-
-    const upcoming = source.filter(ev => ev.date >= todayStr);
-    return limit ? upcoming.slice(0, limit) : upcoming;
-}
-
-/**
- * Backwards compatible helper: Returns upcoming company holidays.
- */
-export function getUpcomingHolidays(referenceDateStr, limit = 5) {
-    return getUpcomingEvents(referenceDateStr, limit, 'company');
-}
-
-/**
- * Returns relative status string ('Today', 'Upcoming', or null).
- */
-export function getRelativeHolidayStatus(targetDateStr, referenceDateStr) {
-    let todayStr;
-    if (referenceDateStr) {
-        todayStr = String(referenceDateStr).slice(0, 10);
-    } else {
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = String(now.getMonth() + 1).padStart(2, '0');
-        const d = String(now.getDate()).padStart(2, '0');
-        todayStr = `${y}-${m}-${d}`;
-    }
-
-    if (targetDateStr === todayStr) return 'Today';
-    if (targetDateStr > todayStr) return 'Upcoming';
-    return null;
-}
-
-/**
- * Returns the total days in a given month for a given year (2026 non-leap year safe).
- */
-export function getDaysInMonth(year, month) {
-    return new Date(year, month, 0).getDate();
-}
-
-/**
- * Returns the day of the week (0 = Sunday, 1 = Monday, ..., 6 = Saturday) for the 1st of a month.
- */
-export function getFirstDayOfWeek(year, month) {
-    return new Date(year, month - 1, 1).getDay();
-}
-
-/**
- * Formats an ISO date into full readable format: e.g. "Thursday, January 1, 2026"
- * Pure local string formatting to avoid UTC timezone offsets.
- */
-export function formatFullHolidayDate(dateStr) {
-    if (!dateStr) return '';
-    const parts = dateStr.split('-');
-    if (parts.length !== 3) return dateStr;
-    const year = parts[0];
-    const monthInt = parseInt(parts[1], 10);
-    const dayInt = parseInt(parts[2], 10);
-    const monthName = MONTH_NAMES[monthInt - 1] || '';
-    const dayOfWeek = WEEKDAY_LABELS[new Date(parseInt(year, 10), monthInt - 1, dayInt).getDay()]?.full || '';
-    return `${dayOfWeek}, ${monthName} ${dayInt}, ${year}`;
-}
