@@ -66,8 +66,8 @@ export function extractCleanMachineProblem(rawIssue = '', model = '', serial = '
 
     // Clean common narrative preambles
     const preamblePatterns = [
-        /^Client\s+and\s+site\s+P&M\s+safety\s+inspectors\s+rejected\s+[^.]+\.\s*/i,
-        /^Severe\s+operational\s+crisis:\s*client\s+issued\s+a\s+formal\s+ultimatum[^.]+\.\s*/i,
+        /^Client\s+and\s+site\s+P&M\s+safety\s+inspectors\s+rejected\s+[^.]*\.\s*/i,
+        /^Severe\s+operational\s+crisis:\s*client\s+issued\s+a\s+formal\s+ultimatum[^.]*\.\s*/i,
         /^\([0-9]+\)\s*Rahul\s+Singh\s+expressed\s+extreme\s+frustration\s+regarding\s*/i,
         /^\([0-9]+\)\s*[A-Z][a-z0-9\s/-]+site:\s*/i,
         /^Machine\s+is\s+repeatedly\s+breaking\s+down\s+during\s+operation\.\s*/i,
@@ -225,6 +225,7 @@ export function unbundleBreakdownEntry(breakdown, meetingDate = '') {
             model: baseModel.trim(),
             machine_model: baseModel.trim(),
             serial_number: baseSerial.trim() || 'N/A',
+            serialNumber: baseSerial.trim() || 'N/A',
             site: baseLocation.trim(),
             site_location: baseLocation.trim(),
             issue: cleanProblem || fullIssue || 'Breakdown reported.',
@@ -448,6 +449,7 @@ export function unbundleBreakdownEntry(breakdown, meetingDate = '') {
             model: m.model.trim(),
             machine_model: m.model.trim(),
             serial_number: m.serial.trim(),
+            serialNumber: m.serial.trim(),
             site: m.location.trim(),
             site_location: m.location.trim(),
             issue: cleanProblem || issueToUse || 'Breakdown reported.',

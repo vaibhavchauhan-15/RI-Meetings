@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Agentation } from "agentation";
-import Navbar from "./components/Navbar";
-import MeetingSummariesPage from "./components/MeetingSummariesPage";
+import Navbar from "./components/layout/Navbar";
+import MeetingSummariesPage from "./features/meeting-reports/components/MeetingSummariesPage";
 
 function App() {
   const [resetTrigger, setResetTrigger] = useState(0);

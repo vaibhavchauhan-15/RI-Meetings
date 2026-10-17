@@ -351,35 +351,37 @@ Reach-International-Workflow/
 │   ├── sync-supabase.js       # Universal atomic daily meeting ingestion & verification script
 │   ├── verify-holidays.js     # 200-test assertion suite for 2026 calendar & holidays
 │   ├── test-search.js         # Multi-token scoring search engine unit test suite
+│   ├── test-normalizers-schemas.js # Breakdown normalizer & runtime schema test suite
 │   ├── test-visual-calendar.js # Playwright visual & interactive cross-viewport test suite
 │   └── seed-supabase.js       # Historical database seeder
 ├── src/
 │   ├── components/
 │   │   ├── layout/            # Shared layout components (Navbar.jsx)
-│   │   ├── ui/                # Generic reusable UI primitives
-│   │   │   ├── Badge.jsx      # Role badges, status pills, holiday tags
-│   │   │   ├── Button.jsx     # Reach button hierarchies (.btn-primary, .btn-outline, etc.)
-│   │   │   ├── ErrorBoundary.jsx # React production error boundary with retry UI
-│   │   │   └── Skeleton.jsx   # Animated skeleton loaders for cards and documents
-│   │   ├── MeetingShareMenu.jsx # Meeting link sharing & Web Share API menu
-│   │   ├── MeetingSummariesPage.jsx # Modular dashboard orchestrator
-│   │   ├── Navbar.jsx         # App header with brand logo & fluid search bar
-│   │   └── PresentationOverlay.jsx # PowerPoint-style 60fps canvas presentation overlay
+│   │   ├── shared/            # Cross-feature components (MeetingShareMenu.jsx, PresentationOverlay.jsx)
+│   │   └── ui/                # Generic reusable UI primitives (Badge, Button, Card, Input, ErrorBoundary, Skeleton)
 │   ├── features/
 │   │   ├── holidays/          # 2026 Indian & Company Holiday Calendar feature
 │   │   │   ├── components/    # HolidayCalendar, CalendarGrid, CalendarHeader, HolidayDetails, UpcomingHolidays
-│   │   │   └── data/          # companyHolidays2026.js (single typed source of truth)
+│   │   │   ├── data/          # companyHolidays2026.js (pure dataset & date indexes)
+│   │   │   ├── hooks/         # useHolidayCalendar.js
+│   │   │   ├── services/      # holidayService.js (event querying & upcoming holidays)
+│   │   │   ├── types/         # holidayTypes.js (JSDoc schema contracts)
+│   │   │   └── utils/         # holidayDateUtils.js (calendar math, day counts & formatting)
 │   │   └── meeting-reports/   # Daily Operational Meeting Reports feature
-│   │       ├── components/    # BreakdownCard, BreakdownSection, PartsSection, DirectivesSection, ActionItemsSection, MeetingCard, MeetingList, MeetingDetailDocument, MonthFilterBar, ChronologicalNav, TextHighlightPopup
+│   │       ├── components/    # MeetingSummariesPage, BreakdownCard, BreakdownSection, PartsSection, DirectivesSection, ActionItemsSection, MeetingCard, MeetingList, MeetingDetailDocument, MonthFilterBar, ChronologicalNav, TextHighlightPopup
 │   │       ├── hooks/         # useMeetingData.js, useMeetingUrlSync.js, useTextHighlighter.js
 │   │       ├── services/      # meetingService.js, excelExportService.js (lazy on-demand ExcelJS)
+│   │       ├── schemas/       # meetingSchemas.js (runtime schema validation)
+│   │       ├── types/         # meetingTypes.js (JSDoc data models)
 │   │       └── utils/         # breakdownNormalizer.js, meetingDateUtils.js, meetingFormatters.js, searchEngine.js
 │   ├── lib/
+│   │   ├── api/               # apiClient.js (centralized query wrapper & response envelopes)
 │   │   ├── config/            # env.js (validated client configuration, zero hardcoded fallback secrets)
 │   │   ├── errors/            # AppError.js (DatabaseError, NotFoundError, ValidationError, ExportError)
-│   │   └── supabase/          # client.js (clean Supabase client factory)
+│   │   ├── supabase/          # client.js (clean Supabase client factory)
+│   │   └── validation/        # validator.js (schema assertions & ISO date validation)
 │   ├── utils/                 # Backward-compatibility alias wrappers for external scripts
-│   ├── App.jsx                # Application root
+│   ├── App.jsx                # Application root with clean component imports
 │   ├── index.css              # Design tokens & utility classes
 │   └── main.jsx               # Entry point wrapped with ErrorBoundary
 ├── supabase/                  # PostgreSQL schema, migrations & Deno edge function webhook
@@ -431,7 +433,7 @@ npm run dev
 
 ### Automated Testing
 
-Run the full automated test suite (holiday calculations, calendar rules & search scoring algorithms):
+Run the full automated test suite (holiday calculations, calendar rules, smart search scoring, breakdown normalizers, runtime validation schemas, and error hierarchies):
 
 ```bash
 npm test

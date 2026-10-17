@@ -6,7 +6,7 @@ import PartsSection from './PartsSection.jsx';
 import DirectivesSection from './DirectivesSection.jsx';
 import ActionItemsSection from './ActionItemsSection.jsx';
 import ChronologicalNav from './ChronologicalNav.jsx';
-import MeetingShareMenu from '../../../components/MeetingShareMenu.jsx';
+import MeetingShareMenu from '../../../components/shared/MeetingShareMenu.jsx';
 import { exportMeetingBreakdownsToExcel } from '../services/excelExportService.js';
 
 /**

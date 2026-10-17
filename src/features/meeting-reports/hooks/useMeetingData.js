@@ -64,6 +64,7 @@ export function useMeetingData({ initialYear = '2026', initialMonth = '09' } = {
 
         async function loadMonth() {
             setIsLoadingMonth(true);
+            setError(null);
             try {
                 const data = await fetchMonthIndex(selectedYear, selectedMonth);
                 if (isMounted) {
@@ -73,6 +74,7 @@ export function useMeetingData({ initialYear = '2026', initialMonth = '09' } = {
                 console.error(`[useMeetingData] Failed to load month index for ${selectedYear}/${selectedMonth}:`, err);
                 if (isMounted) {
                     setMonthData(null);
+                    setError(getUserErrorMessage(err, `Unable to load meetings for ${selectedMonth}/${selectedYear}.`));
                 }
             } finally {
                 if (isMounted) {
@@ -104,6 +106,7 @@ export function useMeetingData({ initialYear = '2026', initialMonth = '09' } = {
 
         async function loadMeeting() {
             setIsLoadingMeeting(true);
+            setError(null);
             setFullMeetingDetail(null);
             try {
                 const doc = await fetchMeetingDetail(selectedMeetingMeta.path || selectedMeetingMeta.date);
@@ -112,6 +115,9 @@ export function useMeetingData({ initialYear = '2026', initialMonth = '09' } = {
                 }
             } catch (err) {
                 console.error('[useMeetingData] Failed to fetch full meeting document:', err);
+                if (isMounted) {
+                    setError(getUserErrorMessage(err, 'Unable to load meeting document details.'));
+                }
             } finally {
                 if (isMounted) {
                     setIsLoadingMeeting(false);
@@ -135,6 +141,8 @@ export function useMeetingData({ initialYear = '2026', initialMonth = '09' } = {
         }
     }, [loadInitialData, selectedYear, selectedMonth]);
 
+    const clearError = useCallback(() => setError(null), []);
+
     return {
         yearsData,
         selectedYear,
@@ -151,6 +159,7 @@ export function useMeetingData({ initialYear = '2026', initialMonth = '09' } = {
         isLoadingMonth,
         isLoadingMeeting,
         error,
+        clearError,
         refreshData
     };
 }
