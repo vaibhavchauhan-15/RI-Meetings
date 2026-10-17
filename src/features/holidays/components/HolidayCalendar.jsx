@@ -1,16 +1,8 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React from 'react';
 import CalendarHeader from './CalendarHeader';
 import CalendarGrid from './CalendarGrid';
 import HolidayDetails from './HolidayDetails';
 import UpcomingHolidays from './UpcomingHolidays';
-import { 
-    getHolidaysForMonth, 
-    getEventsForMonth,
-    COMPANY_HOLIDAYS_2026, 
-    HOLIDAYS_BY_DATE_2026,
-    EVENTS_BY_DATE_2026 
-} from '../data/companyHolidays2026';
-
 import { useHolidayCalendar } from '../hooks/useHolidayCalendar.js';
 
 /**

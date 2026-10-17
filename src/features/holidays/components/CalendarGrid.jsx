@@ -3,10 +3,12 @@ import {
     WEEKDAY_LABELS, 
     getDaysInMonth, 
     getFirstDayOfWeek, 
+    formatFullHolidayDate 
+} from '../utils/holidayDateUtils.js';
+import { 
     HOLIDAYS_BY_DATE_2026,
-    EVENTS_BY_DATE_2026,
-    formatFullHolidayDate
-} from '../data/companyHolidays2026';
+    EVENTS_BY_DATE_2026 
+} from '../data/companyHolidays2026.js';
 
 /**
  * CalendarGrid Component
