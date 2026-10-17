@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useMemo, useCallback } from 'react';
 import { 
     WEEKDAY_LABELS, 
     getDaysInMonth, 
@@ -13,17 +13,15 @@ import {
 
 /**
  * CalendarGrid Component
- * Production-ready, highly accessible, mobile & desktop optimized 7-column calendar grid.
+ * Highly compact, accessible, mobile & desktop optimized 7-column calendar grid.
  * 
- * Usability & Accessibility Enhancements:
- * - Touch swipe gestures on mobile (swipe left for next month, swipe right for previous month).
- * - Full W3C APG grid keyboard navigation (Arrow keys, Home, End, PageUp, PageDown).
- * - Clean, clutter-free aesthetics:
- *   * Company Holidays: soft emerald background tint + emerald dot. Solid rich emerald when selected.
- *   * Festivals / Events: high-contrast number + warm amber indicator dot. Solid warm amber when selected.
- *   * Sunday Weekly Off: rose text + Sunday off status. Solid rose when selected.
- *   * Today: crisp cyan ring indicator.
- * - Clear micro-legend below the grid for instant visual clarity.
+ * Features:
+ * - Compact spacing and uniform date-cell sizes
+ * - Event indicators directly below date numbers
+ * - Clear selected (Blue), today (Blue ring), holiday (Green subtle tint), and Sunday (Red) states
+ * - Standardized semantic colors and accessible text descriptions
+ * - Touch swipe gestures for mobile
+ * - Full W3C APG grid keyboard navigation
  */
 export default function CalendarGrid({
     currentMonth, // 1 to 12
@@ -34,9 +32,6 @@ export default function CalendarGrid({
     onPrevMonth,
     onNextMonth
 }) {
-    const daysInCurrentMonth = getDaysInMonth(currentYear, currentMonth);
-    const startDayOfWeek = getFirstDayOfWeek(currentYear, currentMonth); // 0 = Sun ... 6 = Sat
-
     // Touch swipe refs for mobile smooth gestures
     const touchStartX = useRef(null);
     const touchStartY = useRef(null);
@@ -63,74 +58,84 @@ export default function CalendarGrid({
         touchStartY.current = null;
     };
 
-    // Calculate previous month trailing days
-    const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-    const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
-    const daysInPrevMonth = getDaysInMonth(prevYear, prevMonth);
+    // Calculate system today date
+    const todayISO = useMemo(() => {
+        const today = new Date();
+        return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    }, []);
 
-    // Compute trailing cells from previous month
-    const trailingDays = [];
-    for (let i = startDayOfWeek - 1; i >= 0; i--) {
-        const day = daysInPrevMonth - i;
-        const monthStr = String(prevMonth).padStart(2, '0');
-        const dayStr = String(day).padStart(2, '0');
-        const isoDate = `${prevYear}-${monthStr}-${dayStr}`;
-        trailingDays.push({
-            day,
-            month: prevMonth,
-            year: prevYear,
-            isoDate,
-            isCurrentMonth: false,
-            holiday: HOLIDAYS_BY_DATE_2026[isoDate] || null,
-            events: EVENTS_BY_DATE_2026[isoDate] || []
-        });
-    }
+    // Compute grid cells with memoization
+    const { allCells, daysInCurrentMonth } = useMemo(() => {
+        const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+        const startDayOfWeek = getFirstDayOfWeek(currentYear, currentMonth); // 0 = Sun ... 6 = Sat
 
-    // Compute days of current month
-    const currentMonthDays = [];
-    for (let day = 1; day <= daysInCurrentMonth; day++) {
-        const monthStr = String(currentMonth).padStart(2, '0');
-        const dayStr = String(day).padStart(2, '0');
-        const isoDate = `${currentYear}-${monthStr}-${dayStr}`;
-        currentMonthDays.push({
-            day,
-            month: currentMonth,
-            year: currentYear,
-            isoDate,
-            isCurrentMonth: true,
-            holiday: HOLIDAYS_BY_DATE_2026[isoDate] || null,
-            events: EVENTS_BY_DATE_2026[isoDate] || []
-        });
-    }
+        // Trailing cells from previous month
+        const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+        const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+        const daysInPrevMonth = getDaysInMonth(prevYear, prevMonth);
 
-    // Compute leading cells for next month to complete the grid rows
-    const totalCellsSoFar = trailingDays.length + currentMonthDays.length;
-    const remainder = totalCellsSoFar % 7;
-    const daysNeeded = remainder === 0 ? 0 : 7 - remainder;
+        const trailing = [];
+        for (let i = startDayOfWeek - 1; i >= 0; i--) {
+            const day = daysInPrevMonth - i;
+            const monthStr = String(prevMonth).padStart(2, '0');
+            const dayStr = String(day).padStart(2, '0');
+            const isoDate = `${prevYear}-${monthStr}-${dayStr}`;
+            trailing.push({
+                day,
+                month: prevMonth,
+                year: prevYear,
+                isoDate,
+                isCurrentMonth: false,
+                holiday: HOLIDAYS_BY_DATE_2026[isoDate] || null,
+                events: EVENTS_BY_DATE_2026[isoDate] || []
+            });
+        }
 
-    const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
-    const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
-    const leadingDays = [];
-    for (let day = 1; day <= daysNeeded; day++) {
-        const monthStr = String(nextMonth).padStart(2, '0');
-        const dayStr = String(day).padStart(2, '0');
-        const isoDate = `${nextYear}-${monthStr}-${dayStr}`;
-        leadingDays.push({
-            day,
-            month: nextMonth,
-            year: nextYear,
-            isoDate,
-            isCurrentMonth: false,
-            holiday: HOLIDAYS_BY_DATE_2026[isoDate] || null,
-            events: EVENTS_BY_DATE_2026[isoDate] || []
-        });
-    }
+        // Current month cells
+        const current = [];
+        for (let day = 1; day <= daysInMonth; day++) {
+            const monthStr = String(currentMonth).padStart(2, '0');
+            const dayStr = String(day).padStart(2, '0');
+            const isoDate = `${currentYear}-${monthStr}-${dayStr}`;
+            current.push({
+                day,
+                month: currentMonth,
+                year: currentYear,
+                isoDate,
+                isCurrentMonth: true,
+                holiday: HOLIDAYS_BY_DATE_2026[isoDate] || null,
+                events: EVENTS_BY_DATE_2026[isoDate] || []
+            });
+        }
 
-    const allCells = [...trailingDays, ...currentMonthDays, ...leadingDays];
+        // Leading cells for next month
+        const totalSoFar = trailing.length + current.length;
+        const remainder = totalSoFar % 7;
+        const daysNeeded = remainder === 0 ? 0 : 7 - remainder;
 
-    // Check system today date
-    const today = new Date();
-    const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+        const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
+        const leading = [];
+        for (let day = 1; day <= daysNeeded; day++) {
+            const monthStr = String(nextMonth).padStart(2, '0');
+            const dayStr = String(day).padStart(2, '0');
+            const isoDate = `${nextYear}-${monthStr}-${dayStr}`;
+            leading.push({
+                day,
+                month: nextMonth,
+                year: nextYear,
+                isoDate,
+                isCurrentMonth: false,
+                holiday: HOLIDAYS_BY_DATE_2026[isoDate] || null,
+                events: EVENTS_BY_DATE_2026[isoDate] || []
+            });
+        }
+
+        return {
+            allCells: [...trailing, ...current, ...leading],
+            daysInCurrentMonth: daysInMonth
+        };
+    }, [currentMonth, currentYear]);
 
     // Keyboard navigation across calendar grid (W3C APG Grid Pattern)
     const handleKeyDown = useCallback((e) => {
@@ -190,7 +195,6 @@ export default function CalendarGrid({
             }
             onSelectDate(newIso);
 
-            // Move focus to newly selected element after render
             setTimeout(() => {
                 const el = document.querySelector(`button[data-isodate="${newIso}"]`);
                 if (el) el.focus();
@@ -208,28 +212,27 @@ export default function CalendarGrid({
             onKeyDown={handleKeyDown}
         >
             {/* Weekday Column Headers (Sun to Sat) */}
-            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-center py-1 border-b border-slate-100" role="row">
+            <div className="grid grid-cols-7 gap-1 text-center py-0.5 border-b border-slate-100" role="row">
                 {WEEKDAY_LABELS.map((w, idx) => (
                     <div 
                         key={w.full}
                         className={`text-[10px] sm:text-[11px] font-bold ${
                             idx === 0 
-                                ? 'text-rose-500' 
-                                : idx === 6 
-                                    ? 'text-slate-400 font-semibold' 
-                                    : 'text-slate-500 font-semibold'
+                                ? 'text-red-500' 
+                                : 'text-slate-500'
                         }`}
-                        title={idx === 0 ? `${w.full} (Fixed Weekly Off)` : w.full}
+                        title={idx === 0 ? `${w.full} (Sunday Weekly Off)` : w.full}
                         role="columnheader"
-                        aria-label={idx === 0 ? `${w.full} (Fixed Weekly Off)` : w.full}
+                        aria-label={idx === 0 ? `${w.full} (Sunday Weekly Off)` : w.full}
                     >
-                        {w.short}
+                        <span className="sm:hidden">{w.letter}</span>
+                        <span className="hidden sm:inline">{w.short}</span>
                     </div>
                 ))}
             </div>
 
-            {/* Calendar Cells Grid */}
-            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 pt-1" role="grid">
+            {/* 7-Column Calendar Grid Cells */}
+            <div className="grid grid-cols-7 gap-1 pt-0.5" role="grid">
                 {allCells.map((cell) => {
                     const isSunday = isSundayDate(cell.isoDate);
                     const isSelected = selectedDate === cell.isoDate;
@@ -237,7 +240,7 @@ export default function CalendarGrid({
                     const hasFestivals = cell.events.length > 0 && !isCompanyHoliday;
                     const isToday = cell.isoDate === todayISO;
 
-                    // Accessible label & Tooltip
+                    // Accessible descriptions
                     let ariaLabel = cell.isCurrentMonth
                         ? formatFullHolidayDate(cell.isoDate)
                         : `${cell.day} ${cell.month}/${cell.year}`;
@@ -252,7 +255,7 @@ export default function CalendarGrid({
                             ariaLabel += ` - ${eventNames} (Sunday Weekly Off)`;
                             titleText = `${eventNames} (Sunday Weekly Off)`;
                         } else {
-                            ariaLabel += ` - ${eventNames} (Festival Observance - Working Day)`;
+                            ariaLabel += ` - ${eventNames} (Festival Observance - Regular Working Day)`;
                             titleText = `${eventNames} (Regular Working Day)`;
                         }
                     } else if (isSunday) {
@@ -260,51 +263,37 @@ export default function CalendarGrid({
                         titleText = `Sunday Weekly Off (Operations Closed)`;
                     }
 
-                    // Base classes for each date cell button:
-                    // Clean aspect-square, standard rounded-lg edges, perfectly centered date number
-                    let cellClasses = "relative w-full aspect-square max-w-[46px] max-h-[46px] mx-auto flex flex-col items-center justify-center rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 select-none min-h-[30px] sm:min-h-[34px] ";
+                    // Semantic cell classes:
+                    // Compact square cells with subtle backgrounds instead of thick outlines
+                    let cellClasses = "relative w-full aspect-square max-w-[36px] max-h-[36px] sm:max-w-[40px] sm:max-h-[40px] mx-auto flex flex-col items-center justify-center rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ";
 
                     if (!cell.isCurrentMonth) {
-                        // Outside current month (trailing/leading days)
-                        cellClasses += "text-slate-300 hover:text-slate-500 hover:bg-slate-50/80 opacity-40 font-normal ";
+                        cellClasses += "text-slate-300 hover:text-slate-500 hover:bg-slate-50/60 font-normal ";
                     } else if (isSelected) {
-                        // Selected Date State: crisp solid fill, zero bleed, perfectly constrained within cell bounds
-                        if (isCompanyHoliday) {
-                            cellClasses += "bg-emerald-600 text-white font-extrabold shadow-sm ring-2 ring-emerald-700/50 ";
-                        } else if (hasFestivals) {
-                            cellClasses += "bg-amber-600 text-white font-extrabold shadow-sm ring-2 ring-amber-700/50 ";
-                        } else if (isSunday) {
-                            cellClasses += "bg-rose-600 text-white font-extrabold shadow-sm ring-2 ring-rose-700/50 ";
-                        } else {
-                            cellClasses += "bg-slate-900 text-white font-extrabold shadow-sm ring-2 ring-slate-950/50 ";
-                        }
+                        // Blue: selected date or primary interaction
+                        cellClasses += "bg-blue-600 text-white font-black shadow-sm ring-2 ring-blue-300 ";
                     } else if (isCompanyHoliday) {
-                        // Company Holiday Highlight: Emerald Green Theme (Operations Closed)
-                        cellClasses += "bg-emerald-50/90 text-emerald-950 font-bold border border-emerald-300/80 hover:bg-emerald-100/90 hover:border-emerald-400 active:scale-95 ";
-                        if (isToday) {
-                            cellClasses += "ring-2 ring-inset ring-emerald-600 ";
-                        }
+                        // Green: company holiday / closed (subtle emerald tint, no thick border)
+                        cellClasses += "bg-emerald-50 text-emerald-950 font-bold hover:bg-emerald-100/80 active:scale-95 ";
+                        if (isToday) cellClasses += "ring-2 ring-inset ring-blue-500 ";
                     } else if (hasFestivals) {
-                        // Festival / Religious / Cultural Event Day (Regular Working Day)
-                        // Clean, elegant treatment: clean number + amber dot, NO noisy thick square yellow borders!
+                        // Amber: festival / working day (subtle warm amber tint, no thick border)
+                        cellClasses += "bg-amber-50/70 font-bold hover:bg-amber-100/70 active:scale-95 ";
                         if (isSunday) {
-                            cellClasses += "text-rose-600 font-bold hover:bg-rose-50 active:scale-95 ";
-                            if (isToday) cellClasses += "ring-2 ring-inset ring-rose-500 ";
+                            cellClasses += "text-red-600 ";
                         } else {
-                            cellClasses += "text-slate-800 font-bold hover:bg-amber-50/80 hover:text-amber-950 active:scale-95 ";
-                            if (isToday) cellClasses += "ring-2 ring-inset ring-cyan-600 text-cyan-950 ";
+                            cellClasses += "text-slate-900 ";
                         }
+                        if (isToday) cellClasses += "ring-2 ring-inset ring-blue-500 ";
                     } else if (isSunday) {
-                        // Sunday Fixed Weekly Off: Clear distinct rose weekoff tone
-                        cellClasses += "text-rose-600 font-semibold hover:bg-rose-50/80 hover:text-rose-800 active:scale-95 ";
-                        if (isToday) {
-                            cellClasses += "ring-2 ring-inset ring-rose-500 font-bold ";
-                        }
+                        // Red: Sunday weekly off
+                        cellClasses += "text-red-500 font-bold hover:bg-red-50/60 active:scale-95 ";
+                        if (isToday) cellClasses += "ring-2 ring-inset ring-blue-500 ";
                     } else {
-                        // Normal Working Day in Current Month
-                        cellClasses += "text-slate-700 hover:text-slate-950 hover:bg-slate-100 font-semibold active:scale-95 ";
+                        // Regular working day
+                        cellClasses += "text-slate-700 font-semibold hover:bg-slate-100 active:scale-95 ";
                         if (isToday) {
-                            cellClasses += "ring-2 ring-inset ring-cyan-600 text-cyan-900 font-bold ";
+                            cellClasses += "ring-2 ring-inset ring-blue-500 text-blue-900 font-black bg-blue-50/40 ";
                         }
                     }
 
@@ -327,39 +316,37 @@ export default function CalendarGrid({
                             aria-label={ariaLabel}
                             title={titleText}
                         >
-                            {/* Day Number */}
+                            {/* Date number */}
                             <span className="leading-none">{cell.day}</span>
 
-                            {/* Micro-indicators at bottom of cell (dot is removed when selected) */}
-                            <div className="h-1 sm:h-1.5 flex items-center justify-center gap-0.5 mt-0.5">
-                                {!isSelected && (
-                                    isCompanyHoliday ? (
-                                        <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-emerald-600" />
-                                    ) : hasFestivals ? (
-                                        <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-amber-500" />
-                                    ) : isToday ? (
-                                        <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-cyan-600" />
-                                    ) : null
-                                )}
+                            {/* Indicator dot directly below date */}
+                            <div className="h-1.5 flex items-center justify-center gap-0.5 mt-0.5">
+                                {isCompanyHoliday ? (
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-emerald-500'}`} />
+                                ) : hasFestivals ? (
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-amber-500'}`} />
+                                ) : isToday ? (
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-blue-500'}`} />
+                                ) : null}
                             </div>
                         </button>
                     );
                 })}
             </div>
 
-            {/* Micro-Legend for Instant Visual Clarity */}
-            <div className="flex items-center justify-between gap-1 pt-1.5 px-0.5 border-t border-slate-100 text-[9px] sm:text-[10px] text-slate-500 flex-wrap select-none">
-                <span className="flex items-center gap-1 font-medium">
+            {/* Compact Micro-Legend: Green Holiday, Amber Festival, Red Weekly off */}
+            <div className="flex items-center justify-center gap-3.5 pt-1.5 border-t border-slate-100 text-[10px] text-slate-500 select-none flex-wrap">
+                <span className="flex items-center gap-1.5 font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    <span>Company Holiday (Closed)</span>
+                    <span>Holiday</span>
                 </span>
-                <span className="flex items-center gap-1 font-medium">
+                <span className="flex items-center gap-1.5 font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                    <span>Festival (Working Day)</span>
+                    <span>Festival</span>
                 </span>
-                <span className="flex items-center gap-1 font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                    <span>Sunday Off</span>
+                <span className="flex items-center gap-1.5 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                    <span>Weekly off</span>
                 </span>
             </div>
         </div>

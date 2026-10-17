@@ -58,6 +58,9 @@ export default function PresentationOverlay({
     // Tracking erased highlight intervals during drag to prevent redundant updates
     const erasedHighlightKeysRef = useRef(new Set());
 
+// Temporary laser stroke auto-erase duration (3.5 seconds)
+const LASER_STROKE_LIFETIME = 3500;
+
     // Canvas & stroke management
     const canvasRef = useRef(null);
     const strokesRef = useRef([]); // [{ id, color, width, points: [{x, y}] }]
@@ -66,8 +69,11 @@ export default function PresentationOverlay({
     const animFrameRef = useRef(null);
     const [strokeCount, setStrokeCount] = useState(0);
 
-    // Laser pointer ref for direct GPU DOM transform (zero React re-renders)
+    // Laser pointer & temporary drawing refs
     const laserDotRef = useRef(null);
+    const laserStrokesRef = useRef([]); // [{ id, points: [{x, y, time}] }]
+    const laserActiveStrokeRef = useRef(null); // active transient laser stroke buffer
+    const isLaserDrawingRef = useRef(false);
 
     // Coordinated action history for unified Undo
     const historyStackRef = useRef([]); // [{ type: 'stroke' | 'erase_stroke' | 'highlight' | 'clear', data }]
@@ -221,23 +227,9 @@ export default function PresentationOverlay({
     }, [activeTool, contentRef, containerRef]);
 
     // -------------------------------------------------------------
-    // Canvas Sizing & Redraw Logic (DPR Aware)
+    // Canvas Sizing, Progressive Erasing & Redraw Logic (DPR Aware)
     // -------------------------------------------------------------
-    const redrawCanvas = useCallback(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        const dpr = window.devicePixelRatio || 1;
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.restore();
-
-        // Ensure current context transformation matches DPR
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
+    const drawPermanentStrokes = useCallback((ctx) => {
         strokesRef.current.forEach(stroke => {
             if (!stroke.points || stroke.points.length === 0) return;
 
@@ -271,6 +263,199 @@ export default function PresentationOverlay({
             ctx.restore();
         });
     }, []);
+
+    // Draw and progressively erase a temporary laser stroke following original direction and speed
+    const drawLaserStroke = useCallback((ctx, stroke, now) => {
+        const pts = stroke.points;
+        if (!pts || pts.length === 0) return false;
+
+        const cutoffTime = now - LASER_STROKE_LIFETIME;
+        const lastPt = pts[pts.length - 1];
+
+        // If even the last point is older than cutoffTime, this stroke has completely expired
+        if (lastPt.time <= cutoffTime) {
+            return false;
+        }
+
+        // Case 1: Single point (tap/click without drag)
+        if (pts.length === 1) {
+            const age = now - pts[0].time;
+            if (age >= LASER_STROKE_LIFETIME) return false;
+
+            const fadeDuration = 600;
+            const fadeStart = LASER_STROKE_LIFETIME - fadeDuration;
+            const fadeProgress = age > fadeStart ? (age - fadeStart) / fadeDuration : 0;
+            const alpha = Math.max(0, 1 - fadeProgress);
+            const radius = Math.max(0.8, 3.5 * (1 - fadeProgress * 0.5));
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(pts[0].x, pts[0].y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(239, 68, 68, ${alpha})`;
+            ctx.shadowColor = '#ef4444';
+            ctx.shadowBlur = 8 * alpha;
+            ctx.fill();
+            ctx.restore();
+            return true;
+        }
+
+        // Case 2: Polyline stroke (drag)
+        let visiblePoints = [];
+
+        if (pts[0].time > cutoffTime) {
+            // Entire stroke is still younger than cutoffTime -> full line visible
+            visiblePoints = pts;
+        } else {
+            // Progressive Erasing: Find segment [k, k+1] that crosses cutoffTime
+            let k = -1;
+            for (let i = 0; i < pts.length - 1; i++) {
+                if (pts[i].time <= cutoffTime && pts[i + 1].time > cutoffTime) {
+                    k = i;
+                    break;
+                }
+            }
+
+            if (k >= 0) {
+                const p1 = pts[k];
+                const p2 = pts[k + 1];
+                const dt = p2.time - p1.time;
+                const fraction = dt > 0 ? Math.max(0, Math.min(1, (cutoffTime - p1.time) / dt)) : 1;
+                const interpolatedStart = {
+                    x: p1.x + (p2.x - p1.x) * fraction,
+                    y: p1.y + (p2.y - p1.y) * fraction,
+                    time: cutoffTime
+                };
+                visiblePoints = [interpolatedStart, ...pts.slice(k + 1)];
+            } else {
+                visiblePoints = pts.filter(p => p.time > cutoffTime);
+            }
+        }
+
+        if (visiblePoints.length === 0) return false;
+
+        const buildPath = () => {
+            ctx.beginPath();
+            ctx.moveTo(visiblePoints[0].x, visiblePoints[0].y);
+            if (visiblePoints.length === 2) {
+                ctx.lineTo(visiblePoints[1].x, visiblePoints[1].y);
+            } else {
+                for (let i = 1; i < visiblePoints.length - 1; i++) {
+                    const midX = (visiblePoints[i].x + visiblePoints[i + 1].x) / 2;
+                    const midY = (visiblePoints[i].y + visiblePoints[i + 1].y) / 2;
+                    ctx.quadraticCurveTo(visiblePoints[i].x, visiblePoints[i].y, midX, midY);
+                }
+                ctx.lineTo(visiblePoints[visiblePoints.length - 1].x, visiblePoints[visiblePoints.length - 1].y);
+            }
+        };
+
+        // Pass 1: Soft glowing laser halo
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.35)';
+        ctx.lineWidth = 7;
+        buildPath();
+        ctx.stroke();
+        ctx.restore();
+
+        // Pass 2: High-intensity laser red core
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3.5;
+        ctx.shadowColor = '#ef4444';
+        ctx.shadowBlur = 8;
+        buildPath();
+        ctx.stroke();
+        ctx.restore();
+
+        return true;
+    }, []);
+
+    // Master DPR-aware canvas frame renderer
+    const renderCanvasFrame = useCallback((now) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return false;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return false;
+
+        const dpr = window.devicePixelRatio || 1;
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        // 1. Draw permanent pen strokes
+        drawPermanentStrokes(ctx);
+
+        // 2. Draw active permanent pen stroke (if user is drawing with pen)
+        if (activeTool === 'pen' && activeStrokeRef.current && activeStrokeRef.current.points.length > 0) {
+            const pts = activeStrokeRef.current.points;
+            ctx.save();
+            ctx.beginPath();
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = activeStrokeRef.current.color;
+            ctx.lineWidth = activeStrokeRef.current.width || 3;
+            ctx.globalAlpha = 0.95;
+            if (pts.length === 1) {
+                ctx.arc(pts[0].x, pts[0].y, (activeStrokeRef.current.width || 3) / 2, 0, Math.PI * 2);
+                ctx.fillStyle = activeStrokeRef.current.color;
+                ctx.fill();
+            } else if (pts.length === 2) {
+                ctx.moveTo(pts[0].x, pts[0].y);
+                ctx.lineTo(pts[1].x, pts[1].y);
+                ctx.stroke();
+            } else {
+                ctx.moveTo(pts[0].x, pts[0].y);
+                for (let i = 1; i < pts.length - 1; i++) {
+                    const midX = (pts[i].x + pts[i + 1].x) / 2;
+                    const midY = (pts[i].y + pts[i + 1].y) / 2;
+                    ctx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY);
+                }
+                ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // 3. Draw & progressively trim completed laser strokes
+        let hasLivingLaserStrokes = false;
+        laserStrokesRef.current = laserStrokesRef.current.filter(stroke => {
+            const alive = drawLaserStroke(ctx, stroke, now);
+            if (alive) hasLivingLaserStrokes = true;
+            return alive;
+        });
+
+        // 4. Draw active temporary laser stroke (if user is currently drawing with laser)
+        if (isLaserDrawingRef.current && laserActiveStrokeRef.current) {
+            const alive = drawLaserStroke(ctx, laserActiveStrokeRef.current, now);
+            if (alive) hasLivingLaserStrokes = true;
+        }
+
+        return hasLivingLaserStrokes || isLaserDrawingRef.current;
+    }, [activeTool, drawLaserStroke, drawPermanentStrokes]);
+
+    const startAnimationLoop = useCallback(() => {
+        if (!animFrameRef.current) {
+            const loop = () => {
+                const needsMore = renderCanvasFrame(performance.now());
+                if (needsMore) {
+                    animFrameRef.current = requestAnimationFrame(loop);
+                } else {
+                    animFrameRef.current = null;
+                }
+            };
+            animFrameRef.current = requestAnimationFrame(loop);
+        }
+    }, [renderCanvasFrame]);
+
+    const redrawCanvas = useCallback(() => {
+        renderCanvasFrame(performance.now());
+    }, [renderCanvasFrame]);
 
     const resizeCanvas = useCallback(() => {
         const canvas = canvasRef.current;
@@ -309,17 +494,49 @@ export default function PresentationOverlay({
         return () => {
             window.removeEventListener('resize', resizeCanvas);
             observer.disconnect();
+            if (animFrameRef.current) {
+                cancelAnimationFrame(animFrameRef.current);
+                animFrameRef.current = null;
+            }
         };
     }, [contentRef, containerRef, resizeCanvas]);
 
     // -------------------------------------------------------------
-    // Laser Pointer Tracking (Direct GPU Transform, Zero Re-renders)
+    // Laser Pointer Feedback & Tracking (Zero React Re-renders)
     // -------------------------------------------------------------
+    const triggerClickFeedback = useCallback((clientX, clientY) => {
+        if (typeof document === 'undefined') return;
+        const ring = document.createElement('div');
+        ring.className = 'laser-click-ripple laser-click-ring';
+        ring.style.left = `${clientX}px`;
+        ring.style.top = `${clientY}px`;
+        ring.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(ring);
+
+        const removeRing = () => {
+            if (ring.parentNode) {
+                ring.parentNode.removeChild(ring);
+            }
+        };
+        ring.addEventListener('animationend', removeRing, { once: true });
+        setTimeout(removeRing, 550);
+    }, []);
+
+    const updateLaserDot = useCallback((clientX, clientY) => {
+        if (!laserDotRef.current) return;
+        laserDotRef.current.style.opacity = '1';
+        laserDotRef.current.style.transform = `translate3d(${clientX}px, ${clientY}px, 0)`;
+    }, []);
+
+    const hideLaserDot = useCallback(() => {
+        if (laserDotRef.current) {
+            laserDotRef.current.style.opacity = '0';
+        }
+    }, []);
+
     useEffect(() => {
         if (activeTool !== 'pointer') {
-            if (laserDotRef.current) {
-                laserDotRef.current.style.opacity = '0';
-            }
+            hideLaserDot();
             return;
         }
 
@@ -327,44 +544,24 @@ export default function PresentationOverlay({
             if (!laserDotRef.current) return;
             const isOverControls = Boolean(e.target?.closest?.('.presentation-toolbar'));
             if (isOverControls) {
-                laserDotRef.current.style.opacity = '0';
+                hideLaserDot();
             } else {
-                laserDotRef.current.style.opacity = '1';
-                laserDotRef.current.style.transform = `translate3d(${e.clientX - 7}px, ${e.clientY - 7}px, 0)`;
+                updateLaserDot(e.clientX, e.clientY);
             }
         };
 
         const handlePointerLeave = () => {
-            if (laserDotRef.current) {
-                laserDotRef.current.style.opacity = '0';
-            }
-        };
-
-        const handleClick = (e) => {
-            if (e.target?.closest?.('.presentation-toolbar')) return;
-
-            // Render lightweight click feedback ring
-            const ring = document.createElement('div');
-            ring.className = 'laser-click-ring';
-            ring.style.transform = `translate3d(${e.clientX - 14}px, ${e.clientY - 14}px, 0)`;
-            ring.setAttribute('aria-hidden', 'true');
-            document.body.appendChild(ring);
-
-            setTimeout(() => {
-                ring.remove();
-            }, 550);
+            hideLaserDot();
         };
 
         window.addEventListener('pointermove', handlePointerMove, { passive: true });
         window.addEventListener('pointerleave', handlePointerLeave);
-        window.addEventListener('click', handleClick);
 
         return () => {
             window.removeEventListener('pointermove', handlePointerMove);
             window.removeEventListener('pointerleave', handlePointerLeave);
-            window.removeEventListener('click', handleClick);
         };
-    }, [activeTool]);
+    }, [activeTool, hideLaserDot, updateLaserDot]);
 
     // -------------------------------------------------------------
     // Freehand Drawing & Eraser Event Handling
@@ -440,7 +637,8 @@ export default function PresentationOverlay({
     };
 
     const handlePointerDown = (e) => {
-        if (activeTool === 'pointer' || activeTool === 'highlighter') return;
+        if (activeTool === 'highlighter') return;
+        if (e.target?.closest?.('.presentation-toolbar')) return;
 
         erasedHighlightKeysRef.current.clear();
 
@@ -451,6 +649,20 @@ export default function PresentationOverlay({
         }
 
         const coords = getCanvasCoordinates(e);
+
+        if (activeTool === 'pointer') {
+            triggerClickFeedback(e.clientX, e.clientY);
+            updateLaserDot(e.clientX, e.clientY);
+            const now = performance.now();
+            isLaserDrawingRef.current = true;
+            laserActiveStrokeRef.current = {
+                id: 'laser-' + now + '-' + Math.random(),
+                points: [{ x: coords.x, y: coords.y, time: now }]
+            };
+            startAnimationLoop();
+            return;
+        }
+
         isDrawingRef.current = true;
 
         if (activeTool === 'eraser') {
@@ -484,8 +696,27 @@ export default function PresentationOverlay({
     };
 
     const handlePointerMove = (e) => {
+        if (activeTool === 'pointer') {
+            updateLaserDot(e.clientX, e.clientY);
+            if (!isLaserDrawingRef.current || !laserActiveStrokeRef.current) return;
+
+            const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+            const now = performance.now();
+            const pts = laserActiveStrokeRef.current.points;
+
+            for (const evt of events) {
+                const coords = getCanvasCoordinates(evt);
+                const last = pts[pts.length - 1];
+                if (!last || Math.hypot(coords.x - last.x, coords.y - last.y) >= 1.5) {
+                    pts.push({ x: coords.x, y: coords.y, time: now });
+                }
+            }
+            startAnimationLoop();
+            return;
+        }
+
         if (!isDrawingRef.current) return;
-        if (activeTool === 'pointer' || activeTool === 'highlighter') return;
+        if (activeTool === 'highlighter') return;
 
         // Extract coalesced events for highest polling fidelity
         const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
@@ -537,12 +768,32 @@ export default function PresentationOverlay({
 
     const handlePointerUp = (e) => {
         erasedHighlightKeysRef.current.clear();
-        if (!isDrawingRef.current) return;
         try {
             e.currentTarget.releasePointerCapture(e.pointerId);
         } catch {
             // Ignore
         }
+
+        if (activeTool === 'pointer') {
+            if (isLaserDrawingRef.current) {
+                isLaserDrawingRef.current = false;
+                if (laserActiveStrokeRef.current && laserActiveStrokeRef.current.points.length > 0) {
+                    laserStrokesRef.current.push(laserActiveStrokeRef.current);
+                }
+                laserActiveStrokeRef.current = null;
+                startAnimationLoop();
+            }
+            if (e.pointerType === 'touch') {
+                setTimeout(() => {
+                    if (!isLaserDrawingRef.current) {
+                        hideLaserDot();
+                    }
+                }, 150);
+            }
+            return;
+        }
+
+        if (!isDrawingRef.current) return;
         isDrawingRef.current = false;
 
         if (activeStrokeRef.current && activeStrokeRef.current.points.length > 0) {
@@ -557,12 +808,24 @@ export default function PresentationOverlay({
 
     const handlePointerCancel = (e) => {
         erasedHighlightKeysRef.current.clear();
-        if (!isDrawingRef.current) return;
         try {
             e.currentTarget.releasePointerCapture(e.pointerId);
         } catch {
             // Ignore
         }
+
+        if (activeTool === 'pointer') {
+            isLaserDrawingRef.current = false;
+            if (laserActiveStrokeRef.current && laserActiveStrokeRef.current.points.length > 0) {
+                laserStrokesRef.current.push(laserActiveStrokeRef.current);
+            }
+            laserActiveStrokeRef.current = null;
+            startAnimationLoop();
+            hideLaserDot();
+            return;
+        }
+
+        if (!isDrawingRef.current) return;
         isDrawingRef.current = false;
         activeStrokeRef.current = null;
         redrawCanvas();
@@ -634,14 +897,19 @@ export default function PresentationOverlay({
     }, [onUndoHighlight, redrawCanvas]);
 
     const handleClearAll = useCallback(() => {
-        if (strokesRef.current.length === 0 && (!highlights || highlights.length === 0)) return;
+        if (strokesRef.current.length === 0 && (!highlights || highlights.length === 0) && laserStrokesRef.current.length === 0) return;
 
-        historyStackRef.current.push({
-            type: 'clear_all',
-            strokes: [...strokesRef.current]
-        });
+        if (strokesRef.current.length > 0 || (highlights && highlights.length > 0)) {
+            historyStackRef.current.push({
+                type: 'clear_all',
+                strokes: [...strokesRef.current]
+            });
+        }
 
         strokesRef.current = [];
+        laserStrokesRef.current = [];
+        laserActiveStrokeRef.current = null;
+        isLaserDrawingRef.current = false;
         setStrokeCount(0);
         redrawCanvas();
 
@@ -690,7 +958,7 @@ export default function PresentationOverlay({
     const getCanvasCursorClass = () => {
         switch (activeTool) {
             case 'pointer':
-                return 'cursor-laser-tool pointer-events-none';
+                return 'cursor-laser-tool pointer-events-auto';
             case 'highlighter':
                 return 'cursor-highlighter-tool pointer-events-none';
             case 'pen':
@@ -711,7 +979,7 @@ export default function PresentationOverlay({
             onPointerCancel={handlePointerCancel}
             className={`absolute inset-0 z-20 select-none ${getCanvasCursorClass()}`}
             style={{
-                touchAction: (activeTool === 'pen' || activeTool === 'eraser') ? 'none' : 'pan-y'
+                touchAction: (activeTool === 'pen' || activeTool === 'eraser' || activeTool === 'pointer') ? 'none' : 'pan-y'
             }}
         />
     );

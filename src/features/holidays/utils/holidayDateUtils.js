@@ -115,3 +115,21 @@ export function isSundayDate(dateStr) {
     return new Date(y, m, d).getDay() === 0;
 }
 
+/**
+ * Formats an ISO date into compact short format: e.g. "Sun, Oct 11"
+ * @param {string} dateStr - 'YYYY-MM-DD'
+ * @returns {string} Formatted short date
+ */
+export function formatShortHolidayDate(dateStr) {
+    if (!dateStr) return '';
+    const parts = String(dateStr).trim().split('-');
+    if (parts.length !== 3) return dateStr;
+    const year = parseInt(parts[0], 10);
+    const monthInt = parseInt(parts[1], 10);
+    const dayInt = parseInt(parts[2], 10);
+    if (isNaN(year) || isNaN(monthInt) || isNaN(dayInt)) return dateStr;
+    const monthShort = MONTH_SHORT_NAMES[monthInt - 1] || '';
+    const dayOfWeek = WEEKDAY_LABELS[new Date(year, monthInt - 1, dayInt).getDay()]?.short || '';
+    return `${dayOfWeek}, ${monthShort} ${dayInt}`;
+}
+

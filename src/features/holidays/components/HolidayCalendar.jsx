@@ -35,11 +35,10 @@ export default function HolidayCalendar({
 
     return (
         <aside 
-            onWheel={(e) => e.stopPropagation()}
-            className={`bg-white border border-border-light rounded-xl sm:rounded-2xl shadow-card p-2 sm:p-3 flex flex-col gap-2 sm:gap-2.5 w-full flex-1 min-h-0 transition-all duration-200 overscroll-contain ${className}`}
+            className={`bg-white border border-border-light rounded-xl sm:rounded-2xl shadow-card p-2.5 sm:p-3 flex flex-col gap-2 w-full transition-all duration-200 ${className}`}
             aria-label="2026 Reach International Calendar"
         >
-            {/* Header: Short Title, Month Nav, Quick Month Picker, Today & Close action */}
+            {/* Header: Combined Month & Navigation in single compact row */}
             <CalendarHeader 
                 currentMonth={currentMonth}
                 currentYear={currentYear}
@@ -50,7 +49,7 @@ export default function HolidayCalendar({
                 onClose={onClose}
             />
 
-            {/* Grid: 7 columns, touch gestures, APG keyboard nav, clean dots, micro-legend */}
+            {/* Grid: 7 columns, touch gestures, APG keyboard nav, semantic indicators, micro-legend */}
             <CalendarGrid 
                 currentMonth={currentMonth}
                 currentYear={currentYear}
@@ -61,12 +60,12 @@ export default function HolidayCalendar({
                 onNextMonth={handleNextMonth}
             />
 
-            {/* Details: Selected Holiday, Festival Observance, or Working Day card */}
+            {/* Details: Compact Selected Holiday / Festival / Working Day summary */}
             <HolidayDetails 
                 selectedDate={selectedDate}
             />
 
-            {/* Upcoming Holidays & Festivals: Interactive filterable list */}
+            {/* Upcoming Events: Interactive filterable list with non-clipping categories and compact cards */}
             <UpcomingHolidays 
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
