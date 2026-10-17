@@ -26,15 +26,15 @@ export const WEEKDAY_LABELS = Object.freeze([
 ]);
 
 export const RELIGION_FILTER_TABS = Object.freeze([
-    { id: 'all', label: 'All', icon: '🗓️' },
-    { id: 'company', label: 'Company (15)', icon: '🟢' },
-    { id: 'Hindu', label: 'Hindu', icon: '🕉️' },
-    { id: 'Islamic', label: 'Muslim', icon: '☪️' },
-    { id: 'Sikh', label: 'Sikh', icon: 'ੴ' },
-    { id: 'Christian', label: 'Christian', icon: '✝️' },
-    { id: 'Jain', label: 'Jain', icon: '卐' },
-    { id: 'Buddhist', label: 'Buddhist', icon: '☸️' },
-    { id: 'National', label: 'National', icon: '🇮🇳' }
+    { id: 'all', label: 'All', iconKey: 'all' },
+    { id: 'company', label: 'Company (15)', iconKey: 'company' },
+    { id: 'Hindu', label: 'Hindu', iconKey: 'Hindu' },
+    { id: 'Islamic', label: 'Muslim', iconKey: 'Islamic' },
+    { id: 'Sikh', label: 'Sikh', iconKey: 'Sikh' },
+    { id: 'Christian', label: 'Christian', iconKey: 'Christian' },
+    { id: 'Jain', label: 'Jain', iconKey: 'Jain' },
+    { id: 'Buddhist', label: 'Buddhist', iconKey: 'Buddhist' },
+    { id: 'National', label: 'National', iconKey: 'National' }
 ]);
 
 /**
@@ -97,3 +97,21 @@ export function getRelativeHolidayStatus(targetDateStr, referenceDateStr) {
     if (targetDateStr > todayStr) return 'Upcoming';
     return null;
 }
+
+/**
+ * Checks whether an ISO date string ('YYYY-MM-DD') falls on a Sunday.
+ * Timezone-safe local calendar arithmetic.
+ * @param {string} dateStr - 'YYYY-MM-DD'
+ * @returns {boolean}
+ */
+export function isSundayDate(dateStr) {
+    if (!dateStr) return false;
+    const parts = String(dateStr).trim().split('-');
+    if (parts.length !== 3) return false;
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return false;
+    return new Date(y, m, d).getDay() === 0;
+}
+

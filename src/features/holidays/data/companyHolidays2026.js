@@ -188,7 +188,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "National",
         "icon": "🗳️",
         "isCompanyHoliday": false,
-        "type": "National Observance (Working Day)",
+        "type": "National Observance (Sunday Weekly Off)",
         "notes": "Commemorating the founding of the Election Commission of India (1950)."
     },
     {
@@ -235,7 +235,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Sikhism",
         "icon": "ੴ",
         "isCompanyHoliday": false,
-        "type": "Religious Festival (Working Day)",
+        "type": "Religious Festival (Sunday Weekly Off)",
         "notes": "Celebrating the life and egalitarian teachings of Guru Ravidas Ji."
     },
     {
@@ -391,7 +391,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Cultural",
         "icon": "🌸",
         "isCompanyHoliday": false,
-        "type": "Cultural Observance (Working Day)",
+        "type": "Cultural Observance (Sunday Weekly Off)",
         "notes": "Global celebration of the social, economic, cultural, and leadership achievements of women."
     },
     {
@@ -496,7 +496,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Christianity",
         "icon": "🌿",
         "isCompanyHoliday": false,
-        "type": "Christian Observance (Working Day)",
+        "type": "Christian Observance (Sunday Weekly Off)",
         "notes": "Commemorating the triumphant entry of Jesus Christ into Jerusalem on palm fronds."
     },
     {
@@ -571,7 +571,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Christianity",
         "icon": "🕊️",
         "isCompanyHoliday": false,
-        "type": "Christian Observance (Working Day)",
+        "type": "Christian Observance (Sunday Weekly Off)",
         "notes": "Joyful celebration of the resurrection of Jesus Christ from the dead, concluding Holy Week."
     },
     {
@@ -736,7 +736,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Christianity",
         "icon": "🕊️",
         "isCompanyHoliday": false,
-        "type": "Christian Observance (Working Day)",
+        "type": "Christian Observance (Sunday Weekly Off)",
         "notes": "Christian celebration commemorating the descent of the Holy Spirit upon the Apostles 50 days after Easter."
     },
     {
@@ -826,7 +826,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "National",
         "icon": "🧘",
         "isCompanyHoliday": false,
-        "type": "National Observance (Working Day)",
+        "type": "National Observance (Sunday Weekly Off)",
         "notes": "Global celebration of Yoga, founded by India and recognized by the United Nations."
     },
     {
@@ -901,7 +901,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "National",
         "icon": "🇮🇳",
         "isCompanyHoliday": false,
-        "type": "National Observance (Working Day)",
+        "type": "National Observance (Sunday Weekly Off)",
         "notes": "Commemorating the victory of the Indian Armed Forces in the 1999 Kargil War and honoring the fallen heroes."
     },
     {
@@ -963,7 +963,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Zoroastrianism",
         "icon": "☀️",
         "isCompanyHoliday": false,
-        "type": "Religious Festival (Working Day)",
+        "type": "Religious Festival (Sunday Weekly Off)",
         "notes": "Joyful celebration of the New Year by the Parsi / Zoroastrian community in India according to the Shahenshahi calendar."
     },
     {
@@ -1040,7 +1040,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Hinduism",
         "icon": "🌿",
         "isCompanyHoliday": false,
-        "type": "Cultural Festival (Working Day)",
+        "type": "Cultural Festival (Sunday Weekly Off)",
         "notes": "Traditional monsoon festival in Rajasthan, UP, and MP celebrated by women with folk songs and swings."
     },
     {
@@ -1222,7 +1222,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Jainism",
         "icon": "🙏",
         "isCompanyHoliday": false,
-        "type": "Religious Festival (Working Day)",
+        "type": "Religious Festival (Sunday Weekly Off)",
         "notes": "Digambar Jain community day of universal forgiveness and reconciliation."
     },
     {
@@ -1284,7 +1284,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Hinduism",
         "icon": "🔱",
         "isCompanyHoliday": false,
-        "type": "Religious Festival (Working Day)",
+        "type": "Religious Festival (Sunday Weekly Off)",
         "notes": "Auspicious commencement of Sharad Navratri with Ghatasthapana, celebrating the 9 forms of Navadurga with Garba and fasting."
     },
     {
@@ -1299,7 +1299,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Hinduism",
         "icon": "🔱",
         "isCompanyHoliday": false,
-        "type": "Religious Festival (Working Day)",
+        "type": "Religious Festival (Sunday Weekly Off)",
         "notes": "The climax of Durga Puja and Navratri worshiping Goddess Mahagauri with Kanya Pujan and Sandhi Puja."
     },
     {
@@ -1346,7 +1346,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Hinduism",
         "icon": "🌕",
         "isCompanyHoliday": false,
-        "type": "Religious Festival (Working Day)",
+        "type": "Religious Festival (Sunday Weekly Off)",
         "notes": "Harvest full moon night of divine nectar (Kheer under moonlight); also celebrating Maharishi Valmiki, composer of the Ramayana."
     },
     {
@@ -1406,7 +1406,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Christianity",
         "icon": "✝️",
         "isCompanyHoliday": false,
-        "type": "Religious Festival (Working Day)",
+        "type": "Religious Festival (Sunday Weekly Off)",
         "notes": "Christian solemnity honoring all saints known and unknown; also celebrated as Kannada Rajyotsava and Haryana Day."
     },
     {
@@ -1483,7 +1483,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Sikhism",
         "icon": "ੴ",
         "isCompanyHoliday": false,
-        "type": "Religious Festival (Working Day)",
+        "type": "Religious Festival (Sunday Weekly Off)",
         "notes": "Sikh festival marking the release of Guru Hargobind Ji and 52 Hindu kings from Gwalior Fort; also celebrated as Lord Mahavira attainment of Nirvana in Jainism."
     },
     {
@@ -1579,7 +1579,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Hinduism",
         "icon": "☀️",
         "isCompanyHoliday": false,
-        "type": "Religious Festival (Working Day)",
+        "type": "Religious Festival (Sunday Weekly Off)",
         "notes": "The main day of Chhath Puja where devotees stand waist-deep in rivers and ponds offering Arghya to the setting Sun and Chhathi Maiya."
     },
     {
@@ -1744,7 +1744,7 @@ export const ALL_INDIAN_CALENDAR_EVENTS_2026 = [
         "religion": "Hinduism",
         "icon": "📖",
         "isCompanyHoliday": false,
-        "type": "Religious Festival (Working Day)",
+        "type": "Religious Festival (Sunday Weekly Off)",
         "notes": "Auspicious day when Lord Krishna delivered the sacred message of the Bhagavad Gita to Arjuna at Kurukshetra."
     },
     {

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { ChevronUp, AlertTriangle, RotateCcw, X } from 'lucide-react';
 import { useMeetingData } from '../hooks/useMeetingData.js';
 import { useMeetingUrlSync } from '../hooks/useMeetingUrlSync.js';
 import { useTextHighlighter } from '../hooks/useTextHighlighter.js';
@@ -70,14 +71,23 @@ export default function MeetingSummariesPage({
     const pageContainerRef = useRef(null);
     const documentCardRef = useRef(null);
     const cardsContainerRef = useRef(null);
+    const documentContainerRef = useRef(null);
 
     // Text selection highlighter
+    const meetingKey = selectedMeetingMeta?.id || selectedMeetingMeta?.date || 'default';
     const {
+        highlights,
         selectionPopup,
         setSelectionPopup,
         handleDocumentSelection,
-        applyTextHighlight
-    } = useTextHighlighter();
+        applyTextHighlight,
+        undoHighlight,
+        clearHighlights,
+        canUndoHighlight
+    } = useTextHighlighter({
+        containerRef: documentCardRef,
+        meetingKey
+    });
 
     // -------------------------------------------------------------
     // Bi-directional URL Parameter Synchronization
@@ -137,6 +147,9 @@ export default function MeetingSummariesPage({
             if (pageContainerRef.current) {
                 pageContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
             }
+            if (documentContainerRef.current) {
+                documentContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
     }, [resetTrigger]);
 
@@ -146,39 +159,71 @@ export default function MeetingSummariesPage({
         setSelectionPopup(null);
     }, [selectedMeetingMeta]);
 
-    // Track scroll for floating back-to-top button
+    // Track scroll for floating back-to-top button across all possible scrolling viewports
     useEffect(() => {
         const handleScroll = () => {
-            const activeContainer = selectedMeetingMeta ? pageContainerRef.current : cardsContainerRef.current;
-            const scrollTop = activeContainer ? activeContainer.scrollTop : (window.scrollY || 0);
-            setShowScrollTop(scrollTop > 180);
+            const docScroll = documentContainerRef.current?.scrollTop || 0;
+            const pageScroll = pageContainerRef.current?.scrollTop || 0;
+            const cardsScroll = cardsContainerRef.current?.scrollTop || 0;
+            const winScroll = typeof window !== 'undefined' ? (window.scrollY || document.documentElement?.scrollTop || 0) : 0;
+            const maxScroll = Math.max(docScroll, pageScroll, cardsScroll, winScroll);
+            setShowScrollTop(maxScroll > 160);
         };
 
-        const activeContainer = selectedMeetingMeta ? pageContainerRef.current : cardsContainerRef.current;
-        if (activeContainer) {
-            activeContainer.addEventListener('scroll', handleScroll, { passive: true });
-            return () => activeContainer.removeEventListener('scroll', handleScroll);
-        }
-    }, [selectedMeetingMeta]);
+        const docEl = documentContainerRef.current;
+        const pageEl = pageContainerRef.current;
+        const cardsEl = cardsContainerRef.current;
+
+        docEl?.addEventListener('scroll', handleScroll, { passive: true });
+        pageEl?.addEventListener('scroll', handleScroll, { passive: true });
+        cardsEl?.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('scroll', handleScroll, { passive: true });
+
+        // Initial check
+        handleScroll();
+
+        return () => {
+            docEl?.removeEventListener('scroll', handleScroll);
+            pageEl?.removeEventListener('scroll', handleScroll);
+            cardsEl?.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, [selectedMeetingMeta, isLoadingMeeting]);
 
     const scrollToTop = useCallback(() => {
-        if (selectedMeetingMeta && pageContainerRef.current) {
+        if (documentContainerRef.current) {
+            documentContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        if (pageContainerRef.current) {
             pageContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-        } else if (cardsContainerRef.current) {
+        }
+        if (cardsContainerRef.current) {
             cardsContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [selectedMeetingMeta]);
+        if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }, []);
 
     // -------------------------------------------------------------
     // Event Handlers
     // -------------------------------------------------------------
     const handleSelectMeeting = useCallback((meta) => {
         setSelectedMeetingMeta(meta);
+        if (documentContainerRef.current) {
+            documentContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        }
         if (pageContainerRef.current) {
             pageContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }, [setSelectedMeetingMeta]);
+
+    // When activeDashboardTab switches to 'calendar' (e.g. from URL), ensure calendar sidebar is open on desktop
+    useEffect(() => {
+        if (activeDashboardTab === 'calendar') {
+            setShowCalendarSidebar(true);
+        }
+    }, [activeDashboardTab]);
 
     const handleBackToStream = useCallback(() => {
         setSelectedMeetingMeta(null);
@@ -188,8 +233,11 @@ export default function MeetingSummariesPage({
     const handleOpenCalendarForDate = useCallback((isoDate) => {
         if (isoDate) {
             setCalendarSelectedDate(isoDate);
-            setActiveDashboardTab('calendar');
             setShowCalendarSidebar(true);
+            // On mobile viewports (< 1024px), switch active dashboard tab to calendar
+            if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                setActiveDashboardTab('calendar');
+            }
         }
     }, []);
 
@@ -211,7 +259,6 @@ export default function MeetingSummariesPage({
     return (
         <div 
             ref={pageContainerRef}
-            onMouseUp={handleDocumentSelection}
             className="flex-1 w-full h-full min-h-0 bg-stage-bg flex flex-col overflow-y-auto relative p-2.5 sm:p-4 lg:p-6"
         >
             <div className="max-w-[1440px] w-full mx-auto flex-1 flex flex-col gap-3 sm:gap-4 min-h-0">
@@ -222,7 +269,15 @@ export default function MeetingSummariesPage({
                     activeDashboardTab={activeDashboardTab}
                     onSelectTab={setActiveDashboardTab}
                     showCalendarSidebar={showCalendarSidebar}
-                    onToggleCalendarSidebar={() => setShowCalendarSidebar(prev => !prev)}
+                    onToggleCalendarSidebar={() => {
+                        setShowCalendarSidebar(prev => {
+                            const next = !prev;
+                            if (!next && activeDashboardTab === 'calendar') {
+                                setActiveDashboardTab('meetings');
+                            }
+                            return next;
+                        });
+                    }}
                     onExportMonthExcel={!isSearching && displayMeetings.length > 0 ? handleExportMonth : null}
                     isExportingMonthExcel={isExportingMonthExcel}
                     selectedMonthName={monthData?.monthName || 'Month'}
@@ -235,25 +290,26 @@ export default function MeetingSummariesPage({
                         role="alert"
                     >
                         <div className="flex items-center gap-2">
-                            <span className="text-base">⚠️</span>
+                            <AlertTriangle className="w-4 h-4 text-red-500 animate-pulse-subtle flex-shrink-0" />
                             <span className="font-medium">{error}</span>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                             <button
                                 type="button"
                                 onClick={refreshData}
-                                className="px-2.5 py-1 bg-white hover:bg-red-100 text-red-700 border border-red-300 rounded-lg font-bold text-xs transition-colors cursor-pointer active:scale-95 shadow-2xs"
+                                className="group px-2.5 py-1 bg-white hover:bg-red-100 text-red-700 border border-red-300 rounded-lg font-bold text-xs transition-colors cursor-pointer active:scale-95 shadow-2xs flex items-center gap-1.5"
                             >
-                                Retry
+                                <RotateCcw className="w-3.5 h-3.5 transition-transform duration-300 group-hover:-rotate-90" />
+                                <span>Retry</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={clearError}
-                                className="p-1 text-red-400 hover:text-red-700 transition-colors cursor-pointer rounded"
+                                className="p-1 text-red-400 hover:text-red-700 transition-colors cursor-pointer rounded flex items-center justify-center hover:scale-105 active:scale-95"
                                 title="Dismiss error"
                                 aria-label="Dismiss error"
                             >
-                                ✕
+                                <X className="w-4 h-4 transition-transform duration-200 hover:rotate-90" />
                             </button>
                         </div>
                     </div>
@@ -283,7 +339,10 @@ export default function MeetingSummariesPage({
 
                         {/* Document View vs Stream List View */}
                         {selectedMeetingMeta ? (
-                            <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar">
+                            <div 
+                                ref={documentContainerRef}
+                                className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar"
+                            >
                                 {isLoadingMeeting ? (
                                     <MeetingDocumentSkeleton />
                                 ) : (
@@ -321,10 +380,12 @@ export default function MeetingSummariesPage({
                     {/* Right Column: 2026 Company Holiday & Indian Calendar */}
                     <div 
                         onWheel={(e) => e.stopPropagation()}
-                        className={`w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 flex flex-col min-h-0 overflow-y-auto pr-0.5 custom-scrollbar overscroll-contain ${
+                        className={`w-full lg:w-[380px] xl:w-[420px] lg:flex-shrink-0 lg:flex-initial flex-col min-h-0 overflow-y-auto pr-0.5 custom-scrollbar overscroll-contain pb-2 sm:pb-4 ${
                             activeDashboardTab === 'calendar' 
-                                ? 'flex' 
-                                : (showCalendarSidebar ? 'hidden lg:flex' : 'hidden')
+                                ? 'flex flex-1 h-full lg:flex-initial lg:h-auto' 
+                                : 'hidden'
+                        } ${
+                            showCalendarSidebar ? 'lg:flex' : 'lg:hidden'
                         }`}
                     >
                         <ErrorBoundary
@@ -335,6 +396,12 @@ export default function MeetingSummariesPage({
                             <HolidayCalendar 
                                 initialMonth={selectedMonth}
                                 initialDate={calendarSelectedDate}
+                                onMonthChange={(m) => {
+                                    const mStr = String(m).padStart(2, '0');
+                                    if (mStr !== selectedMonth) {
+                                        setSelectedMonth(mStr);
+                                    }
+                                }}
                                 onClose={() => {
                                     setShowCalendarSidebar(false);
                                     setActiveDashboardTab('meetings');
@@ -350,22 +417,22 @@ export default function MeetingSummariesPage({
                 <button
                     type="button"
                     onClick={scrollToTop}
-                    className="fixed bottom-5 right-5 z-40 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-900 text-white shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center cursor-pointer active:scale-95 animate-fade-in"
+                    className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-900/95 hover:bg-slate-900 text-white shadow-xl hover:shadow-2xl border border-slate-700/50 backdrop-blur-sm transition-all duration-200 flex items-center justify-center cursor-pointer active:scale-90 animate-fade-in group"
                     title="Scroll to top"
                     aria-label="Scroll to top"
                 >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="18 15 12 9 6 15" />
-                    </svg>
+                    <ChevronUp className="w-5 h-5 transition-transform duration-200 group-hover:-translate-y-1" />
                 </button>
             )}
 
-            {/* Text Selection Quick Highlighter Popup */}
-            <TextHighlightPopup
-                selectionPopup={selectionPopup}
-                onApplyHighlight={applyTextHighlight}
-                onClose={() => setSelectionPopup(null)}
-            />
+            {/* Text Selection Quick Highlighter Popup (Only when not in presentation mode) */}
+            {!isPresentationMode && (
+                <TextHighlightPopup
+                    selectionPopup={selectionPopup}
+                    onApplyHighlight={applyTextHighlight}
+                    onClose={() => setSelectionPopup(null)}
+                />
+            )}
 
             {/* PowerPoint-style Presentation Mode Overlay */}
             {isPresentationMode && activeMeetingDoc && (
@@ -374,6 +441,11 @@ export default function MeetingSummariesPage({
                     contentRef={documentCardRef}
                     meetingTitle={activeMeetingDoc.title || activeMeetingDoc.dateFormatted || 'Daily Operational Meeting'}
                     onClose={() => setIsPresentationMode(false)}
+                    highlights={highlights}
+                    onApplyHighlight={applyTextHighlight}
+                    onUndoHighlight={undoHighlight}
+                    onClearHighlights={clearHighlights}
+                    canUndoHighlight={canUndoHighlight}
                 />
             )}
         </div>

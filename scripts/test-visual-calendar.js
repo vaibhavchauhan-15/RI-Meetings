@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 import path from 'path';
 
-const ARTIFACT_DIR = 'C:/Users/vaibh/.gemini/antigravity/brain/0a92a5a8-d3bb-4e8a-ad0b-f07ccfa97a9c';
+const ARTIFACT_DIR = 'C:/Users/vaibh/.gemini/antigravity/brain/db7d04b3-4340-452b-9b23-d9b67ce355b0';
 
 async function runVisualTests() {
     console.log('Starting Playwright visual & interactive test on http://localhost:4173 ...');
@@ -32,13 +32,28 @@ async function runVisualTests() {
     await desktopPage.screenshot({ path: desktopDefaultPath, fullPage: false });
     console.log(`✓ Desktop screenshot saved: ${desktopDefaultPath}`);
 
-    // Test Desktop Month Navigation to March (which has Holi and Chaitra Navratri / Eid)
-    const nextMonthBtn = desktopPage.locator('button[aria-label="Next month"]');
-    await nextMonthBtn.click(); // Feb
-    await desktopPage.waitForTimeout(200);
-    await nextMonthBtn.click(); // Mar
-    await desktopPage.waitForTimeout(300);
-    console.log('✓ Desktop: Navigated to March 2026');
+    // Test Quick Month Picker Toggle
+    const monthPickerToggle = desktopPage.locator('button[title*="jump directly to any month"]');
+    if (await monthPickerToggle.count() > 0) {
+        await monthPickerToggle.click();
+        await desktopPage.waitForTimeout(300);
+        const monthPickerPath = path.join(ARTIFACT_DIR, 'desktop-month-picker.png');
+        await desktopPage.screenshot({ path: monthPickerPath, fullPage: false });
+        console.log(`✓ Desktop month picker screenshot saved: ${monthPickerPath}`);
+
+        // Click March in picker
+        const marBtn = desktopPage.locator('button:has-text("Mar")').first();
+        if (await marBtn.count() > 0) {
+            await marBtn.click();
+            await desktopPage.waitForTimeout(300);
+            console.log('✓ Desktop: Jumped to March via 12-month picker');
+        }
+    } else {
+        // Fallback next month button
+        const nextMonthBtn = desktopPage.locator('button[aria-label="Next month"]');
+        await nextMonthBtn.click();
+        await desktopPage.waitForTimeout(200);
+    }
 
     // Test selecting a company holiday (e.g. Holi)
     const holidayCell = desktopPage.locator('button[aria-label*="Official Company Holiday"]').first();
@@ -65,6 +80,14 @@ async function runVisualTests() {
     const desktopSelectedFestivalPath = path.join(ARTIFACT_DIR, 'desktop-calendar-selected-festival.png');
     await desktopPage.screenshot({ path: desktopSelectedFestivalPath, fullPage: false });
     console.log(`✓ Desktop selected festival screenshot saved: ${desktopSelectedFestivalPath}`);
+
+    // Test "Today" quick-jump button
+    const todayBtn = desktopPage.locator('button[aria-label="Jump to today\'s date"]');
+    if (await todayBtn.count() > 0) {
+        await todayBtn.click();
+        await desktopPage.waitForTimeout(300);
+        console.log('✓ Desktop: Clicked Today button, jumped back to today');
+    }
 
     // 2. Mobile Viewport Test (390x844 iPhone 14)
     console.log('\n--- 2. Testing Mobile Viewport (390x844) ---');

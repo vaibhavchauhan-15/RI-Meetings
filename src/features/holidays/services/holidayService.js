@@ -11,6 +11,7 @@ import {
     HOLIDAYS_BY_DATE_2026, 
     EVENTS_BY_DATE_2026 
 } from '../data/companyHolidays2026.js';
+import { isSundayDate } from '../utils/holidayDateUtils.js';
 
 /**
  * Checks if a given date string is an official company holiday.
@@ -69,22 +70,26 @@ export function getDayCalendarInfo(dateStr) {
     const events = EVENTS_BY_DATE_2026[cleanDate] || [];
     const isHoliday = Boolean(companyHoliday);
     const hasEvents = events.length > 0;
+    const isSunday = isSundayDate(cleanDate);
 
     let statusType = 'regular';
     if (isHoliday) {
         statusType = 'company-holiday';
     } else if (hasEvents) {
         statusType = 'festival-event';
+    } else if (isSunday) {
+        statusType = 'sunday-off';
     }
 
     return {
         date: cleanDate,
         isCompanyHoliday: isHoliday,
+        isSunday,
         companyHoliday,
         events,
         hasEvents,
         statusType,
-        primaryName: companyHoliday ? companyHoliday.name : (events[0]?.name || null)
+        primaryName: companyHoliday ? companyHoliday.name : (events[0]?.name || (isSunday ? 'Sunday Weekly Off' : null))
     };
 }
 

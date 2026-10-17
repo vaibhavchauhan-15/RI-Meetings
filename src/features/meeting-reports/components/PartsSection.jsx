@@ -1,4 +1,5 @@
 import React from 'react';
+import { Package } from 'lucide-react';
 
 /**
  * Section 2: Parts, Procurement & Inventory Table
@@ -11,7 +12,7 @@ export function PartsSection({ parts = [] }) {
         <section className="flex flex-col gap-3" aria-labelledby="section-parts-title">
             <div className="flex items-center justify-between pb-1">
                 <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-theme-parts flex-shrink-0" />
+                    <Package className="w-4 h-4 text-theme-parts flex-shrink-0 transition-transform duration-300 hover:scale-110" />
                     <h3 id="section-parts-title" className="text-xs sm:text-sm font-bold text-slate-900 tracking-wide uppercase">
                         2. Parts, Procurement & Inventory
                     </h3>

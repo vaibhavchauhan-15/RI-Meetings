@@ -1,4 +1,6 @@
 import React from 'react';
+import { AlertTriangle, RotateCcw, RefreshCw } from 'lucide-react';
+import { Button } from './Button.jsx';
 
 /**
  * Reach International Operations - Application Error Boundary
@@ -35,8 +37,8 @@ export class ErrorBoundary extends React.Component {
             return (
                 <div className="flex-1 w-full min-h-[320px] flex items-center justify-center p-6 bg-slate-50">
                     <div className="bg-white border border-border-light rounded-2xl shadow-card p-6 sm:p-8 max-w-md w-full text-center">
-                        <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center mx-auto mb-4 text-xl">
-                            ⚠️
+                        <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center mx-auto mb-4 shadow-2xs">
+                            <AlertTriangle className="w-6 h-6 animate-pulse-subtle" />
                         </div>
                         <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-1.5">
                             {this.props.title || 'Something went wrong'}
@@ -45,20 +47,22 @@ export class ErrorBoundary extends React.Component {
                             {this.props.message || 'An unexpected error occurred while rendering this view. Please try reloading or resetting.'}
                         </p>
                         <div className="flex items-center justify-center gap-3">
-                            <button
-                                type="button"
+                            <Button
+                                variant="primary"
+                                size="sm"
                                 onClick={this.handleReset}
-                                className="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-theme-breakdown hover:bg-blue-700 active:scale-95 rounded-xl transition-all cursor-pointer shadow-xs"
+                                leftIcon={<RotateCcw className="w-3.5 h-3.5 transition-transform duration-300 group-hover:-rotate-90" />}
                             >
                                 Try Again
-                            </button>
-                            <button
-                                type="button"
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => window.location.reload()}
-                                className="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-border-light hover:bg-slate-50 active:scale-95 rounded-xl transition-all cursor-pointer shadow-2xs"
+                                leftIcon={<RefreshCw className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-180" />}
                             >
                                 Refresh Page
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Search, X, ArrowLeft } from 'lucide-react';
 
 /**
  * Navbar Component for Reach International
@@ -56,14 +57,11 @@ export const Navbar = React.memo(function Navbar({
                     <button
                         type="button"
                         onClick={handleMobileBack}
-                        className="sm:hidden p-2 -ml-1 text-slate-700 hover:text-slate-950 active:scale-95 rounded-xl hover:bg-slate-100 transition-all flex items-center justify-center min-w-[40px] min-h-[40px] flex-shrink-0 cursor-pointer"
+                        className="sm:hidden p-2 -ml-1 text-slate-700 hover:text-slate-950 active:scale-95 rounded-xl hover:bg-slate-100 transition-all flex items-center justify-center min-w-[40px] min-h-[40px] flex-shrink-0 cursor-pointer group"
                         title="Back to normal view"
                         aria-label="Back to normal view"
                     >
-                        <svg className="w-5 h-5 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="19" y1="12" x2="5" y2="12"></line>
-                            <polyline points="12 19 5 12 12 5"></polyline>
-                        </svg>
+                        <ArrowLeft className="w-5 h-5 text-slate-700 transition-transform duration-200 group-hover:-translate-x-1" />
                     </button>
                 )}
 
@@ -88,15 +86,12 @@ export const Navbar = React.memo(function Navbar({
 
                 {/* Search Input Container */}
                 {onSearchChange && (
-                    <div className={`relative flex items-center transition-all duration-200 ${
+                    <div className={`relative flex items-center transition-all duration-200 group ${
                         isMobileExpanded 
                             ? 'w-full flex-1' 
                             : 'flex-1 max-w-[210px] min-[380px]:max-w-[240px] sm:flex-none sm:ml-auto sm:w-80'
                     }`}>
-                        <svg className="absolute left-3 text-slate-400 pointer-events-none w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
+                        <Search className="absolute left-3 text-slate-400 pointer-events-none w-4 h-4 flex-shrink-0 transition-transform duration-300 group-focus-within:scale-110 group-focus-within:text-theme-breakdown" />
                         <input 
                             ref={inputRef}
                             type="text" 
@@ -125,7 +120,7 @@ export const Navbar = React.memo(function Navbar({
                         {searchQuery && (
                             <button 
                                 type="button"
-                                className="absolute right-2 w-6 h-6 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200 text-xs font-bold transition-all active:scale-90 cursor-pointer" 
+                                className="absolute right-2 w-6 h-6 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200 text-xs font-bold transition-all active:scale-90 cursor-pointer group" 
                                 onClick={() => {
                                     onSearchChange('');
                                     if (inputRef.current) inputRef.current.focus();
@@ -133,7 +128,7 @@ export const Navbar = React.memo(function Navbar({
                                 title="Clear search"
                                 aria-label="Clear search query"
                             >
-                                ✕
+                                <X className="w-3.5 h-3.5 transition-transform duration-200 hover:rotate-90 hover:scale-110" />
                             </button>
                         )}
                     </div>

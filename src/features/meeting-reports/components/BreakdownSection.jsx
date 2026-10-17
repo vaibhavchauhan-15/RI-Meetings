@@ -1,4 +1,5 @@
 import React from 'react';
+import { Wrench } from 'lucide-react';
 import BreakdownCard from './BreakdownCard.jsx';
 
 /**
@@ -12,7 +13,7 @@ export function BreakdownSection({ breakdowns = [] }) {
         <section className="flex flex-col gap-3" aria-labelledby="section-breakdowns-title">
             <div className="flex items-center justify-between pb-1">
                 <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-theme-breakdown flex-shrink-0" />
+                    <Wrench className="w-4 h-4 text-theme-breakdown flex-shrink-0 transition-transform duration-300 hover:rotate-12" />
                     <h3 id="section-breakdowns-title" className="text-xs sm:text-sm font-bold text-slate-900 tracking-wide uppercase">
                         1. Machine Breakdowns & Site Updates
                     </h3>

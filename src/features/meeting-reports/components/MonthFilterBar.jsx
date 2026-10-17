@@ -1,4 +1,5 @@
 import React from 'react';
+import { Search, X } from 'lucide-react';
 
 /**
  * MonthFilterBar Component
@@ -16,16 +17,18 @@ export function MonthFilterBar({
 }) {
     if (isSearching) {
         return (
-            <div className="flex items-center justify-between py-1 px-1 bg-blue-50/70 border border-blue-200/80 rounded-xl text-xs flex-shrink-0">
-                <span className="text-slate-700 font-medium pl-2">
-                    Searching for: <strong className="text-theme-breakdown font-bold">"{searchQuery}"</strong>
+            <div className="flex items-center justify-between py-1 px-1.5 bg-blue-50/70 border border-blue-200/80 rounded-xl text-xs flex-shrink-0">
+                <span className="text-slate-700 font-medium pl-1 inline-flex items-center gap-1.5">
+                    <Search className="w-3.5 h-3.5 text-theme-breakdown flex-shrink-0" />
+                    <span>Searching for: <strong className="text-theme-breakdown font-bold">"{searchQuery}"</strong></span>
                 </span>
                 <button
                     type="button"
                     onClick={onClearSearch}
-                    className="text-[11px] font-bold text-slate-500 hover:text-slate-800 px-2 py-0.5 rounded hover:bg-blue-100/60 transition-colors cursor-pointer"
+                    className="text-[11px] font-bold text-slate-500 hover:text-slate-800 px-2 py-0.5 rounded hover:bg-blue-100/60 transition-colors cursor-pointer inline-flex items-center gap-1 group"
                 >
-                    Clear Filter ✕
+                    <span>Clear Filter</span>
+                    <X className="w-3 h-3 transition-transform duration-200 group-hover:rotate-90" />
                 </button>
             </div>
         );

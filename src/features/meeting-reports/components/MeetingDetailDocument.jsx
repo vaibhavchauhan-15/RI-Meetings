@@ -1,4 +1,16 @@
 import React, { useState, useRef } from 'react';
+import { 
+    Copy, 
+    Check, 
+    FileSpreadsheet, 
+    Loader2, 
+    Presentation, 
+    PartyPopper, 
+    ArrowRight, 
+    WifiOff, 
+    Info, 
+    FileText 
+} from 'lucide-react';
 import { formatDateDDMMYYYY } from '../utils/meetingDateUtils.js';
 import { formatMeetingSummary, copyTextToClipboard } from '../utils/meetingFormatters.js';
 import BreakdownSection from './BreakdownSection.jsx';
@@ -57,7 +69,8 @@ export function MeetingDetailDocument({
     return (
         <article 
             ref={contentRef}
-            className="bg-white border border-border-light rounded-2xl shadow-card p-4 sm:p-6 lg:p-8 flex flex-col gap-6 select-text transition-all"
+            data-annotation-root="true"
+            className="bg-white border border-border-light rounded-2xl shadow-card p-4 sm:p-6 lg:p-8 flex flex-col gap-6 select-text transition-all relative"
             aria-label={`Operational Meeting Document for ${displayDate}`}
         >
             {/* Document Header */}
@@ -65,12 +78,14 @@ export function MeetingDetailDocument({
                 <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
                     <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded">
-                                Operational Meeting Report
+                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded inline-flex items-center gap-1">
+                                <FileText className="w-3 h-3 text-slate-500" />
+                                <span>Operational Meeting Report</span>
                             </span>
                             {isHoliday && (
-                                <span className="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
-                                    {meeting.holidayName || 'Official Holiday'}
+                                <span className="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300 inline-flex items-center gap-1">
+                                    <PartyPopper className="w-3 h-3 text-amber-800" />
+                                    <span>{meeting.holidayName || 'Official Holiday'}</span>
                                 </span>
                             )}
                         </div>
@@ -81,31 +96,39 @@ export function MeetingDetailDocument({
 
                     {/* Quick Action Buttons */}
                     <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap select-none">
-                        {/* Copy Summary Button */}
+                        {/* Copy Summary Button - Icon Only */}
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all cursor-pointer active:scale-95 min-h-[36px] ${
+                            className={`w-9 h-9 rounded-xl border transition-all cursor-pointer active:scale-95 flex items-center justify-center flex-shrink-0 group ${
                                 copySuccess
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                                    : 'bg-white hover:bg-slate-50 text-slate-700 border-border-light shadow-2xs'
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300 shadow-2xs'
+                                    : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border-border-light shadow-2xs'
                             }`}
-                            title="Copy formatted summary to clipboard"
+                            title={copySuccess ? 'Copied summary to clipboard!' : 'Copy summary to clipboard'}
+                            aria-label={copySuccess ? 'Copied summary' : 'Copy summary'}
                         >
-                            <span>{copySuccess ? '✓' : '📋'}</span>
-                            <span>{copySuccess ? 'Copied!' : 'Copy Summary'}</span>
+                            {copySuccess ? (
+                                <Check className="w-4 h-4 text-emerald-600 animate-scale-check" />
+                            ) : (
+                                <Copy className="w-4 h-4 text-slate-600 transition-transform duration-200 group-hover:scale-110" />
+                            )}
                         </button>
 
-                        {/* Excel Export Button */}
+                        {/* Excel Export Button - Icon Only */}
                         <button
                             type="button"
                             onClick={handleExportExcel}
                             disabled={isExportingExcel}
-                            className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border border-border-light bg-white hover:bg-slate-50 text-slate-700 shadow-2xs transition-all cursor-pointer active:scale-95 disabled:opacity-50 min-h-[36px]"
-                            title="Export breakdowns to formatted Excel (.xlsx)"
+                            className="w-9 h-9 rounded-xl border border-border-light bg-white hover:bg-slate-50 text-emerald-700 hover:text-emerald-800 shadow-2xs transition-all cursor-pointer active:scale-95 disabled:opacity-50 flex items-center justify-center flex-shrink-0 group"
+                            title={isExportingExcel ? 'Generating Excel report...' : 'Export breakdowns to formatted Excel (.xlsx)'}
+                            aria-label="Export breakdowns to formatted Excel"
                         >
-                            <span>📊</span>
-                            <span>{isExportingExcel ? 'Generating...' : 'Export Excel'}</span>
+                            {isExportingExcel ? (
+                                <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
+                            ) : (
+                                <FileSpreadsheet className="w-4 h-4 text-emerald-700 transition-transform duration-200 group-hover:scale-110" />
+                            )}
                         </button>
 
                         {/* Presentation Mode Button */}
@@ -113,11 +136,12 @@ export function MeetingDetailDocument({
                             <button
                                 type="button"
                                 onClick={onOpenPresentation}
-                                className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#00a8cc] to-[#0b84a5] hover:from-[#0096b8] hover:to-[#097390] text-white shadow-primary-btn transition-all cursor-pointer active:scale-95 min-h-[36px]"
+                                className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#00a8cc] to-[#0b84a5] hover:from-[#0096b8] hover:to-[#097390] text-white shadow-primary-btn transition-all cursor-pointer active:scale-95 min-h-[36px] group"
                                 title="Open Presentation Mode (Laser pointer, drawing tools)"
+                                aria-label="Open Presentation Mode"
                             >
-                                <span>🎯</span>
-                                <span className="hidden sm:inline">Presentation</span>
+                                <Presentation className="w-3.5 h-3.5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                                <span>Present</span>
                             </button>
                         )}
 
@@ -140,16 +164,17 @@ export function MeetingDetailDocument({
                 <div className="p-4 sm:p-5 rounded-xl bg-amber-50 border border-amber-200/80 border-l-[4px] border-l-amber-500 flex flex-col gap-2">
                     <div className="flex items-center justify-between gap-2">
                         <h4 className="text-xs sm:text-sm font-bold text-amber-950 flex items-center gap-1.5">
-                            <span>🎉</span>
+                            <PartyPopper className="w-4 h-4 text-amber-700 flex-shrink-0 animate-bounce-subtle" />
                             <span>Official Company Holiday: {meeting.holidayName || 'Holiday'}</span>
                         </h4>
                         {onOpenCalendar && (
                             <button
                                 type="button"
                                 onClick={() => onOpenCalendar(meeting.date)}
-                                className="text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 px-2.5 py-1 rounded-lg border border-amber-300 transition-colors cursor-pointer"
+                                className="text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 px-2.5 py-1 rounded-lg border border-amber-300 transition-colors cursor-pointer inline-flex items-center gap-1 group"
                             >
-                                View in Holiday Calendar →
+                                <span>View in Holiday Calendar</span>
+                                <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1" />
                             </button>
                         )}
                     </div>
@@ -161,8 +186,9 @@ export function MeetingDetailDocument({
 
             {notRecorded && (
                 <div className="p-4 rounded-xl bg-slate-100 border border-slate-300/80 border-l-[4px] border-l-slate-500 flex flex-col gap-1.5">
-                    <h4 className="text-xs sm:text-sm font-bold text-slate-900">
-                        ⚠️ Operations Status: Meeting Not Recorded (Network Connectivity Issue)
+                    <h4 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <WifiOff className="w-4 h-4 text-slate-600 flex-shrink-0 animate-pulse" />
+                        <span>Operations Status: Meeting Not Recorded (Network Connectivity Issue)</span>
                     </h4>
                     <p className="text-xs sm:text-[13px] text-slate-700 leading-relaxed">
                         The daily operational review was conducted, but meeting recording and transcripts are unavailable due to site internet connectivity issues.
@@ -172,8 +198,9 @@ export function MeetingDetailDocument({
 
             {!isHoliday && !notRecorded && (!meeting.breakdowns || meeting.breakdowns.length === 0) && (
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 border-l-[4px] border-l-slate-400 flex flex-col gap-1.5">
-                    <h4 className="text-xs sm:text-sm font-bold text-slate-900">
-                        ℹ️ Operations Status: Office Open • No Meeting Held
+                    <h4 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <Info className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                        <span>Operations Status: Office Open • No Meeting Held</span>
                     </h4>
                     <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed">
                         Corporate offices and site fleet operations were fully active; no daily breakdown coordination meeting was conducted on this day.

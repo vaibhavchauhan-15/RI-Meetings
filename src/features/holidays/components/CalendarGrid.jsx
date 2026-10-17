@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { 
     WEEKDAY_LABELS, 
     getDaysInMonth, 
     getFirstDayOfWeek, 
-    formatFullHolidayDate 
+    formatFullHolidayDate,
+    isSundayDate 
 } from '../utils/holidayDateUtils.js';
 import { 
     HOLIDAYS_BY_DATE_2026,
@@ -12,23 +13,55 @@ import {
 
 /**
  * CalendarGrid Component
- * Renders conventional 7-column Sunday-Saturday grid with correct weekday alignment,
- * leap-year safe month lengths.
+ * Production-ready, highly accessible, mobile & desktop optimized 7-column calendar grid.
  * 
- * Visual Distinction Rules:
- * - Official Company Holidays: Highlighted in Emerald Green 🟢 (Operations Closed).
- * - Indian Festivals & Observances: Highlighted in Warm Amber / Saffron 🌟 (Regular Working Days).
- * - Standard Working Days: Clean Slate tone.
+ * Usability & Accessibility Enhancements:
+ * - Touch swipe gestures on mobile (swipe left for next month, swipe right for previous month).
+ * - Full W3C APG grid keyboard navigation (Arrow keys, Home, End, PageUp, PageDown).
+ * - Clean, clutter-free aesthetics:
+ *   * Company Holidays: soft emerald background tint + emerald dot. Solid rich emerald when selected.
+ *   * Festivals / Events: high-contrast number + warm amber indicator dot. Solid warm amber when selected.
+ *   * Sunday Weekly Off: rose text + Sunday off status. Solid rose when selected.
+ *   * Today: crisp cyan ring indicator.
+ * - Clear micro-legend below the grid for instant visual clarity.
  */
 export default function CalendarGrid({
     currentMonth, // 1 to 12
     currentYear = 2026,
     selectedDate, // 'YYYY-MM-DD'
     onSelectDate,
-    onNavigateMonth
+    onNavigateMonth,
+    onPrevMonth,
+    onNextMonth
 }) {
     const daysInCurrentMonth = getDaysInMonth(currentYear, currentMonth);
     const startDayOfWeek = getFirstDayOfWeek(currentYear, currentMonth); // 0 = Sun ... 6 = Sat
+
+    // Touch swipe refs for mobile smooth gestures
+    const touchStartX = useRef(null);
+    const touchStartY = useRef(null);
+
+    const handleTouchStart = (e) => {
+        touchStartX.current = e.touches[0].clientX;
+        touchStartY.current = e.touches[0].clientY;
+    };
+
+    const handleTouchEnd = (e) => {
+        if (touchStartX.current === null || touchStartY.current === null) return;
+        const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+        const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+        
+        // Horizontal swipe threshold (> 45px and predominantly horizontal)
+        if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+            if (deltaX < 0 && onNextMonth) {
+                onNextMonth();
+            } else if (deltaX > 0 && onPrevMonth) {
+                onPrevMonth();
+            }
+        }
+        touchStartX.current = null;
+        touchStartY.current = null;
+    };
 
     // Calculate previous month trailing days
     const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
@@ -99,17 +132,96 @@ export default function CalendarGrid({
     const today = new Date();
     const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
+    // Keyboard navigation across calendar grid (W3C APG Grid Pattern)
+    const handleKeyDown = useCallback((e) => {
+        if (!selectedDate) return;
+        const [y, m, d] = selectedDate.split('-').map(Number);
+        if (!y || !m || !d) return;
+
+        let targetDate = new Date(y, m - 1, d);
+        let handled = false;
+
+        switch (e.key) {
+            case 'ArrowLeft':
+                targetDate.setDate(targetDate.getDate() - 1);
+                handled = true;
+                break;
+            case 'ArrowRight':
+                targetDate.setDate(targetDate.getDate() + 1);
+                handled = true;
+                break;
+            case 'ArrowUp':
+                targetDate.setDate(targetDate.getDate() - 7);
+                handled = true;
+                break;
+            case 'ArrowDown':
+                targetDate.setDate(targetDate.getDate() + 7);
+                handled = true;
+                break;
+            case 'Home':
+                targetDate = new Date(currentYear, currentMonth - 1, 1);
+                handled = true;
+                break;
+            case 'End':
+                targetDate = new Date(currentYear, currentMonth - 1, daysInCurrentMonth);
+                handled = true;
+                break;
+            case 'PageUp':
+                if (onPrevMonth) onPrevMonth();
+                handled = true;
+                return;
+            case 'PageDown':
+                if (onNextMonth) onNextMonth();
+                handled = true;
+                return;
+            default:
+                break;
+        }
+
+        if (handled) {
+            e.preventDefault();
+            const ny = targetDate.getFullYear();
+            const nm = targetDate.getMonth() + 1;
+            const nd = targetDate.getDate();
+            const newIso = `${ny}-${String(nm).padStart(2, '0')}-${String(nd).padStart(2, '0')}`;
+            
+            if (nm !== currentMonth && onNavigateMonth) {
+                onNavigateMonth(nm, ny);
+            }
+            onSelectDate(newIso);
+
+            // Move focus to newly selected element after render
+            setTimeout(() => {
+                const el = document.querySelector(`button[data-isodate="${newIso}"]`);
+                if (el) el.focus();
+            }, 10);
+        }
+    }, [selectedDate, currentMonth, currentYear, daysInCurrentMonth, onNavigateMonth, onPrevMonth, onNextMonth, onSelectDate]);
+
     return (
-        <div className="w-full flex flex-col gap-1 select-none" role="region" aria-label="Month Calendar Grid">
+        <div 
+            className="w-full flex flex-col gap-1 select-none" 
+            role="region" 
+            aria-label="Month Calendar Grid"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onKeyDown={handleKeyDown}
+        >
             {/* Weekday Column Headers (Sun to Sat) */}
-            <div className="grid grid-cols-7 gap-1 text-center py-1 border-b border-slate-100" role="row">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-center py-1 border-b border-slate-100" role="row">
                 {WEEKDAY_LABELS.map((w, idx) => (
                     <div 
                         key={w.full}
-                        className={`text-[11px] sm:text-xs font-bold ${idx === 0 || idx === 6 ? 'text-slate-400' : 'text-slate-500'}`}
-                        title={w.full}
+                        className={`text-[10px] sm:text-[11px] font-bold ${
+                            idx === 0 
+                                ? 'text-rose-500' 
+                                : idx === 6 
+                                    ? 'text-slate-400 font-semibold' 
+                                    : 'text-slate-500 font-semibold'
+                        }`}
+                        title={idx === 0 ? `${w.full} (Fixed Weekly Off)` : w.full}
                         role="columnheader"
-                        aria-label={w.full}
+                        aria-label={idx === 0 ? `${w.full} (Fixed Weekly Off)` : w.full}
                     >
                         {w.short}
                     </div>
@@ -117,8 +229,9 @@ export default function CalendarGrid({
             </div>
 
             {/* Calendar Cells Grid */}
-            <div className="grid grid-cols-7 gap-1 pt-1" role="grid">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 pt-1" role="grid">
                 {allCells.map((cell) => {
+                    const isSunday = isSundayDate(cell.isoDate);
                     const isSelected = selectedDate === cell.isoDate;
                     const isCompanyHoliday = Boolean(cell.holiday);
                     const hasFestivals = cell.events.length > 0 && !isCompanyHoliday;
@@ -132,42 +245,73 @@ export default function CalendarGrid({
                     let titleText = undefined;
                     if (isCompanyHoliday) {
                         ariaLabel += ` - ${cell.holiday.name} (Official Company Holiday - Operations Closed)`;
-                        titleText = `🟢 Company Holiday: ${cell.holiday.name} (Operations Closed)`;
+                        titleText = `Company Holiday: ${cell.holiday.name} (Operations Closed)`;
                     } else if (hasFestivals) {
                         const eventNames = cell.events.map(e => e.name).join(' · ');
-                        ariaLabel += ` - ${eventNames} (Festival Observance - Working Day)`;
-                        titleText = `🌟 ${eventNames} (Regular Working Day)`;
+                        if (isSunday) {
+                            ariaLabel += ` - ${eventNames} (Sunday Weekly Off)`;
+                            titleText = `${eventNames} (Sunday Weekly Off)`;
+                        } else {
+                            ariaLabel += ` - ${eventNames} (Festival Observance - Working Day)`;
+                            titleText = `${eventNames} (Regular Working Day)`;
+                        }
+                    } else if (isSunday) {
+                        ariaLabel += ` - Sunday Weekly Off (Operations Closed)`;
+                        titleText = `Sunday Weekly Off (Operations Closed)`;
                     }
 
-                    // Base classes for each date cell button
-                    let cellClasses = "relative flex flex-col items-center justify-center rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 min-h-[42px] sm:min-h-[40px] p-1 cursor-pointer focus:outline-none ";
+                    // Base classes for each date cell button:
+                    // Clean aspect-square, standard rounded-lg edges, perfectly centered date number
+                    let cellClasses = "relative w-full aspect-square max-w-[46px] max-h-[46px] mx-auto flex flex-col items-center justify-center rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 select-none min-h-[30px] sm:min-h-[34px] ";
 
                     if (!cell.isCurrentMonth) {
-                        // Outside current month
-                        cellClasses += "text-slate-300 hover:text-slate-500 hover:bg-slate-50 opacity-55 ";
+                        // Outside current month (trailing/leading days)
+                        cellClasses += "text-slate-300 hover:text-slate-500 hover:bg-slate-50/80 opacity-40 font-normal ";
                     } else if (isSelected) {
-                        // Selected Date State: visually distinct per status
+                        // Selected Date State: crisp solid fill, zero bleed, perfectly constrained within cell bounds
                         if (isCompanyHoliday) {
-                            cellClasses += "bg-emerald-600 text-white font-black shadow-sm ring-2 ring-emerald-600 ring-offset-2 z-10 scale-[1.02] ";
+                            cellClasses += "bg-emerald-600 text-white font-extrabold shadow-sm ring-2 ring-emerald-700/50 ";
                         } else if (hasFestivals) {
-                            cellClasses += "bg-amber-600 text-white font-black shadow-sm ring-2 ring-amber-600 ring-offset-2 z-10 scale-[1.02] ";
+                            cellClasses += "bg-amber-600 text-white font-extrabold shadow-sm ring-2 ring-amber-700/50 ";
+                        } else if (isSunday) {
+                            cellClasses += "bg-rose-600 text-white font-extrabold shadow-sm ring-2 ring-rose-700/50 ";
                         } else {
-                            cellClasses += "bg-slate-900 text-white font-black shadow-sm ring-2 ring-slate-900 ring-offset-2 z-10 scale-[1.02] ";
+                            cellClasses += "bg-slate-900 text-white font-extrabold shadow-sm ring-2 ring-slate-950/50 ";
                         }
                     } else if (isCompanyHoliday) {
-                        // Company Holiday Highlight: Emerald Green Theme (Marks as Green)
-                        cellClasses += "bg-emerald-50 text-emerald-950 font-black border border-emerald-300/90 hover:bg-emerald-100 hover:border-emerald-400 active:scale-95 shadow-2xs ";
+                        // Company Holiday Highlight: Emerald Green Theme (Operations Closed)
+                        cellClasses += "bg-emerald-50/90 text-emerald-950 font-bold border border-emerald-300/80 hover:bg-emerald-100/90 hover:border-emerald-400 active:scale-95 ";
+                        if (isToday) {
+                            cellClasses += "ring-2 ring-inset ring-emerald-600 ";
+                        }
                     } else if (hasFestivals) {
-                        // Festival / Religious / Cultural Event Day (Working Day): Respected Warm Amber/Saffron Theme
-                        cellClasses += "bg-amber-50/75 text-amber-950 font-bold border border-amber-300/80 hover:bg-amber-100 hover:border-amber-400 active:scale-95 shadow-2xs ";
+                        // Festival / Religious / Cultural Event Day (Regular Working Day)
+                        // Clean, elegant treatment: clean number + amber dot, NO noisy thick square yellow borders!
+                        if (isSunday) {
+                            cellClasses += "text-rose-600 font-bold hover:bg-rose-50 active:scale-95 ";
+                            if (isToday) cellClasses += "ring-2 ring-inset ring-rose-500 ";
+                        } else {
+                            cellClasses += "text-slate-800 font-bold hover:bg-amber-50/80 hover:text-amber-950 active:scale-95 ";
+                            if (isToday) cellClasses += "ring-2 ring-inset ring-cyan-600 text-cyan-950 ";
+                        }
+                    } else if (isSunday) {
+                        // Sunday Fixed Weekly Off: Clear distinct rose weekoff tone
+                        cellClasses += "text-rose-600 font-semibold hover:bg-rose-50/80 hover:text-rose-800 active:scale-95 ";
+                        if (isToday) {
+                            cellClasses += "ring-2 ring-inset ring-rose-500 font-bold ";
+                        }
                     } else {
-                        // Normal Date in Current Month (Standard Working Day)
-                        cellClasses += "text-slate-700 hover:text-slate-950 hover:bg-slate-100/80 active:scale-95 ";
+                        // Normal Working Day in Current Month
+                        cellClasses += "text-slate-700 hover:text-slate-950 hover:bg-slate-100 font-semibold active:scale-95 ";
+                        if (isToday) {
+                            cellClasses += "ring-2 ring-inset ring-cyan-600 text-cyan-900 font-bold ";
+                        }
                     }
 
                     return (
                         <button
                             key={cell.isoDate}
+                            data-isodate={cell.isoDate}
                             type="button"
                             onClick={() => {
                                 onSelectDate(cell.isoDate);
@@ -177,49 +321,46 @@ export default function CalendarGrid({
                             }}
                             className={cellClasses}
                             role="gridcell"
+                            tabIndex={isSelected ? 0 : -1}
                             aria-selected={isSelected}
+                            aria-current={isToday ? 'date' : undefined}
                             aria-label={ariaLabel}
                             title={titleText}
                         >
                             {/* Day Number */}
                             <span className="leading-none">{cell.day}</span>
 
-                            {/* Indicator Dot Row */}
-                            <div className="flex items-center gap-0.5 mt-1 h-1.5">
-                                {/* Company Holiday Dot (Green) */}
-                                {isCompanyHoliday && (
-                                    <span 
-                                        className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                                            isSelected 
-                                                ? 'bg-white' 
-                                                : 'bg-emerald-600 ring-1 ring-emerald-300'
-                                        }`}
-                                    />
-                                )}
-
-                                {/* Festival / Observance Dot (Amber) */}
-                                {hasFestivals && (
-                                    <span 
-                                        className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                                            isSelected 
-                                                ? 'bg-white' 
-                                                : 'bg-amber-500 ring-1 ring-amber-300'
-                                        }`}
-                                    />
-                                )}
-
-                                {/* Today Indicator Dot (Blue) */}
-                                {isToday && !isCompanyHoliday && !hasFestivals && (
-                                    <span 
-                                        className={`w-1 h-1 rounded-full ${
-                                            isSelected ? 'bg-white' : 'bg-theme-breakdown'
-                                        }`}
-                                    />
+                            {/* Micro-indicators at bottom of cell (dot is removed when selected) */}
+                            <div className="h-1 sm:h-1.5 flex items-center justify-center gap-0.5 mt-0.5">
+                                {!isSelected && (
+                                    isCompanyHoliday ? (
+                                        <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-emerald-600" />
+                                    ) : hasFestivals ? (
+                                        <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-amber-500" />
+                                    ) : isToday ? (
+                                        <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-cyan-600" />
+                                    ) : null
                                 )}
                             </div>
                         </button>
                     );
                 })}
+            </div>
+
+            {/* Micro-Legend for Instant Visual Clarity */}
+            <div className="flex items-center justify-between gap-1 pt-1.5 px-0.5 border-t border-slate-100 text-[9px] sm:text-[10px] text-slate-500 flex-wrap select-none">
+                <span className="flex items-center gap-1 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Company Holiday (Closed)</span>
+                </span>
+                <span className="flex items-center gap-1 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    <span>Festival (Working Day)</span>
+                </span>
+                <span className="flex items-center gap-1 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                    <span>Sunday Off</span>
+                </span>
             </div>
         </div>
     );

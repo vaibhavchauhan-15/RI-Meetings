@@ -1,4 +1,5 @@
 import React from 'react';
+import { ShieldAlert, Pin } from 'lucide-react';
 
 /**
  * Section 3: Policy & Process Directives Container
@@ -11,7 +12,7 @@ export function DirectivesSection({ directives = [] }) {
         <section className="flex flex-col gap-3" aria-labelledby="section-directives-title">
             <div className="flex items-center justify-between pb-1">
                 <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-theme-directive flex-shrink-0" />
+                    <ShieldAlert className="w-4 h-4 text-theme-directive flex-shrink-0 transition-transform duration-300 hover:scale-110" />
                     <h3 id="section-directives-title" className="text-xs sm:text-sm font-bold text-slate-900 tracking-wide uppercase">
                         3. Policy & Process Directives
                     </h3>
@@ -25,10 +26,10 @@ export function DirectivesSection({ directives = [] }) {
                 {directives.map((dir, idx) => (
                     <div 
                         key={idx}
-                        className="p-3.5 sm:p-4 rounded-xl bg-amber-50/60 border border-amber-200/70 border-l-[4px] border-l-theme-directive shadow-2xs flex flex-col gap-2"
+                        className="p-3.5 sm:p-4 rounded-xl bg-amber-50/60 border border-amber-200/70 border-l-[4px] border-l-theme-directive shadow-2xs flex flex-col gap-2 group"
                     >
                         <h4 className="text-xs sm:text-[13px] font-bold text-amber-950 flex items-center gap-1.5">
-                            <span>📌</span>
+                            <Pin className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 transition-transform duration-200 group-hover:rotate-12" />
                             <span>{dir.title}</span>
                         </h4>
                         {dir.points && dir.points.length > 0 && (

@@ -1,4 +1,5 @@
 import React from 'react';
+import { CheckSquare, UserCheck } from 'lucide-react';
 
 /**
  * Section 4: Key Action Items & Ownership Container
@@ -11,7 +12,7 @@ export function ActionItemsSection({ actionItems = [] }) {
         <section className="flex flex-col gap-3" aria-labelledby="section-actions-title">
             <div className="flex items-center justify-between pb-1">
                 <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-theme-action flex-shrink-0" />
+                    <CheckSquare className="w-4 h-4 text-theme-action flex-shrink-0 transition-transform duration-300 hover:scale-110" />
                     <h3 id="section-actions-title" className="text-xs sm:text-sm font-bold text-slate-900 tracking-wide uppercase">
                         4. Key Action Items & Ownership
                     </h3>
@@ -25,11 +26,11 @@ export function ActionItemsSection({ actionItems = [] }) {
                 {actionItems.map((act, idx) => (
                     <div 
                         key={idx}
-                        className="p-3 sm:p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-200/70 border-l-[4px] border-l-theme-action shadow-2xs flex flex-col gap-1.5"
+                        className="p-3 sm:p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-200/70 border-l-[4px] border-l-theme-action shadow-2xs flex flex-col gap-1.5 group"
                     >
                         <div className="flex items-center gap-1.5 font-bold text-xs sm:text-[13px] text-emerald-950">
-                            <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] flex-shrink-0">
-                                👤
+                            <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] flex-shrink-0 transition-transform duration-200 group-hover:scale-110">
+                                <UserCheck className="w-3 h-3 text-emerald-800" />
                             </span>
                             <span>{act.person}</span>
                         </div>

@@ -1,4 +1,18 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { 
+    Share2, 
+    Copy, 
+    Check, 
+    Mail, 
+    Share, 
+    FileSpreadsheet, 
+    Printer, 
+    X, 
+    ArrowRight, 
+    Download,
+    Loader2,
+    MessageCircle
+} from 'lucide-react';
 import { formatMeetingSummary, copyTextToClipboard } from '../../features/meeting-reports/utils/meetingFormatters.js';
 import { formatDateDDMMYYYY } from '../../features/meeting-reports/utils/meetingDateUtils.js';
 import { exportMeetingBreakdownsToExcel } from '../../features/meeting-reports/services/excelExportService.js';
@@ -171,7 +185,7 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                 type="button"
                 onClick={() => setIsOpen(prev => !prev)}
                 disabled={disabled}
-                className={`relative w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all duration-200 active:scale-90 border flex-shrink-0 cursor-pointer group ${
+                className={`relative w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 border flex-shrink-0 cursor-pointer group ${
                     isOpen 
                         ? 'bg-slate-900 text-white border-slate-900 shadow-xs' 
                         : 'bg-white text-slate-500 border-border-light hover:text-theme-breakdown hover:border-theme-breakdown hover:bg-slate-50 shadow-2xs'
@@ -181,21 +195,7 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                 aria-haspopup="true"
                 aria-expanded={isOpen}
             >
-                <svg 
-                    viewBox="0 0 24 24" 
-                    className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:scale-105" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                >
-                    <circle cx="18" cy="5" r="3"></circle>
-                    <circle cx="6" cy="12" r="3"></circle>
-                    <circle cx="18" cy="19" r="3"></circle>
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                </svg>
+                <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:scale-110" />
 
                 {/* Hover Tooltip when closed */}
                 {!isOpen && (
@@ -223,10 +223,10 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                         <button
                             type="button"
                             onClick={() => setIsOpen(false)}
-                            className="text-slate-400 hover:text-slate-700 text-xs font-bold p-1 rounded hover:bg-slate-100 transition-colors"
+                            className="text-slate-400 hover:text-slate-700 text-xs font-bold p-1 rounded hover:bg-slate-100 transition-colors group"
                             aria-label="Close share popover"
                         >
-                            ✕
+                            <X className="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-90" />
                         </button>
                     </div>
 
@@ -248,21 +248,16 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                                 onClick={handleCopyLink}
                                 title={copiedLink ? 'Link copied!' : 'Copy meeting link'}
                                 aria-label={copiedLink ? 'Copied link to clipboard' : 'Copy meeting link'}
-                                className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all shadow-2xs flex-shrink-0 cursor-pointer active:scale-95 ${
+                                className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all shadow-2xs flex-shrink-0 cursor-pointer active:scale-95 group ${
                                     copiedLink 
                                         ? 'bg-emerald-600 text-white border border-emerald-600' 
                                         : 'bg-white text-slate-600 border border-border-light hover:bg-slate-100 hover:text-theme-breakdown'
                                 }`}
                             >
                                 {copiedLink ? (
-                                    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                    </svg>
+                                    <Check className="w-3.5 h-3.5 text-white animate-scale-check" />
                                 ) : (
-                                    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                    </svg>
+                                    <Copy className="w-3.5 h-3.5 text-slate-600 transition-transform duration-200 group-hover:scale-110" />
                                 )}
                             </button>
                         </div>
@@ -277,10 +272,8 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                             className="w-full flex items-center justify-between p-2 rounded-xl text-left hover:bg-emerald-50/70 border border-transparent hover:border-emerald-200/80 transition-all cursor-pointer group"
                         >
                             <div className="flex items-center gap-2.5">
-                                <span className="w-7 h-7 rounded-lg bg-[#25D366]/15 text-[#128C7E] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
-                                        <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.698.058-2.029-.49-1.697-.7-2.775-2.434-2.859-2.547-.084-.112-.684-.912-.684-1.74 0-.828.433-1.234.586-1.397.153-.164.333-.205.444-.205l.319.006c.11 0 .258-.041.403.308.153.367.525 1.282.571 1.376.046.094.077.204.015.328-.063.125-.094.204-.188.314-.094.11-.197.246-.282.33-.094.094-.192.196-.083.383.11.187.487.804 1.045 1.301.718.639 1.323.837 1.51.93.187.094.296.079.406-.047.11-.125.47-5.46.595-.734.125-.188.25-.157.422-.094.172.063 1.094.516 1.282.609.188.094.313.141.359.219.046.078.046.452-.098.857z"/>
-                                    </svg>
+                                <span className="w-7 h-7 rounded-lg bg-[#25D366]/15 text-[#128C7E] flex items-center justify-center flex-shrink-0 group-hover:scale-110 active:scale-95 transition-transform duration-200 shadow-2xs">
+                                    <MessageCircle className="w-4 h-4 fill-[#128C7E]/20 text-[#128C7E]" />
                                 </span>
                                 <div className="flex flex-col">
                                     <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-900">
@@ -291,9 +284,7 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                                     </span>
                                 </div>
                             </div>
-                            <span className="text-xs text-slate-400 group-hover:text-emerald-700 transition-transform group-hover:translate-x-0.5">
-                                →
-                            </span>
+                            <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-700 transition-transform group-hover:translate-x-1" />
                         </button>
 
                         {/* Email Option */}
@@ -304,10 +295,7 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                         >
                             <div className="flex items-center gap-2.5">
                                 <span className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-                                    </svg>
+                                    <Mail className="w-4 h-4 text-blue-700" />
                                 </span>
                                 <div className="flex flex-col">
                                     <span className="text-xs font-bold text-slate-900 group-hover:text-blue-900">
@@ -318,9 +306,7 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                                     </span>
                                 </div>
                             </div>
-                            <span className="text-xs text-slate-400 group-hover:text-blue-700 transition-transform group-hover:translate-x-0.5">
-                                →
-                            </span>
+                            <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-700 transition-transform group-hover:translate-x-1" />
                         </button>
 
                         {/* Native Device Share (when supported) */}
@@ -332,11 +318,7 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                             >
                                 <div className="flex items-center gap-2.5">
                                     <span className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                                            <polyline points="16 6 12 2 8 6"></polyline>
-                                            <line x1="12" y1="2" x2="12" y2="15"></line>
-                                        </svg>
+                                        <Share className="w-3.5 h-3.5 text-purple-700" />
                                     </span>
                                     <div className="flex flex-col">
                                         <span className="text-xs font-bold text-slate-900 group-hover:text-purple-900">
@@ -347,9 +329,7 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                                         </span>
                                     </div>
                                 </div>
-                                <span className="text-xs text-slate-400 group-hover:text-purple-700 transition-transform group-hover:translate-x-0.5">
-                                    →
-                                </span>
+                                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-700 transition-transform group-hover:translate-x-1" />
                             </button>
                         )}
 
@@ -362,13 +342,11 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                         >
                             <div className="flex items-center gap-2.5">
                                 <span className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                        <polyline points="14 2 14 8 20 8"></polyline>
-                                        <line x1="8" y1="13" x2="16" y2="13"></line>
-                                        <line x1="8" y1="17" x2="16" y2="17"></line>
-                                        <polyline points="10 9 9 9 8 9"></polyline>
-                                    </svg>
+                                    {isExportingExcel ? (
+                                        <Loader2 className="w-4 h-4 text-emerald-700 animate-spin" />
+                                    ) : (
+                                        <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
+                                    )}
                                 </span>
                                 <div className="flex flex-col">
                                     <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-900">
@@ -379,9 +357,7 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                                     </span>
                                 </div>
                             </div>
-                            <span className="text-xs text-slate-400 group-hover:text-emerald-700 transition-transform group-hover:translate-x-0.5">
-                                ↓
-                            </span>
+                            <Download className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-700 transition-transform group-hover:translate-y-0.5" />
                         </button>
 
                         {/* Print / Save PDF */}
@@ -392,11 +368,7 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                         >
                             <div className="flex items-center gap-2.5">
                                 <span className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                                    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                                        <rect width="12" height="8" x="6" y="14"></rect>
-                                    </svg>
+                                    <Printer className="w-4 h-4 text-slate-700" />
                                 </span>
                                 <div className="flex flex-col">
                                     <span className="text-xs font-bold text-slate-900">
@@ -407,9 +379,7 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
                                     </span>
                                 </div>
                             </div>
-                            <span className="text-xs text-slate-400 group-hover:text-slate-700 transition-transform group-hover:translate-x-0.5">
-                                →
-                            </span>
+                            <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-transform group-hover:translate-x-1" />
                         </button>
                     </div>
                 </div>
