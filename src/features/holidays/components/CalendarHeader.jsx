@@ -1,5 +1,5 @@
 import React from 'react';
-import { MONTH_NAMES } from '../data/companyHolidays2026';
+import { MONTH_NAMES } from '../utils/holidayDateUtils.js';
 
 /**
  * CalendarHeader Component

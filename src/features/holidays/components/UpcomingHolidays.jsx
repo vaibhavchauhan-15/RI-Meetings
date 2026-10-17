@@ -1,11 +1,13 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { 
-    COMPANY_HOLIDAYS_2026, 
-    ALL_INDIAN_CALENDAR_EVENTS_2026,
     MONTH_SHORT_NAMES, 
     RELIGION_FILTER_TABS,
     getRelativeHolidayStatus 
-} from '../data/companyHolidays2026';
+} from '../utils/holidayDateUtils.js';
+import { 
+    COMPANY_HOLIDAYS_2026, 
+    ALL_INDIAN_CALENDAR_EVENTS_2026 
+} from '../data/companyHolidays2026.js';
 
 /**
  * UpcomingHolidays Component
