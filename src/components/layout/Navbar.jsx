@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, ArrowLeft } from 'lucide-react';
+import Tooltip from '../shared/Tooltip.jsx';
 
 /**
  * Navbar Component for Reach International
@@ -84,54 +85,61 @@ export const Navbar = React.memo(function Navbar({
                     />
                 </button>
 
-                {/* Search Input Container */}
+                {/* Search Input Container with Tooltip */}
                 {onSearchChange && (
-                    <div className={`relative flex items-center transition-all duration-200 group ${
-                        isMobileExpanded 
-                            ? 'w-full flex-1' 
-                            : 'flex-1 max-w-[210px] min-[380px]:max-w-[240px] sm:flex-none sm:ml-auto sm:w-80'
-                    }`}>
-                        <Search className="absolute left-3 text-slate-400 pointer-events-none w-4 h-4 flex-shrink-0 transition-transform duration-300 group-focus-within:scale-110 group-focus-within:text-theme-breakdown" />
-                        <input 
-                            ref={inputRef}
-                            type="text" 
-                            className="w-full h-10 pl-9 sm:pl-9.5 pr-8 text-xs sm:text-[13px] bg-slate-50 border border-border-light rounded-xl focus:bg-white focus:border-theme-breakdown focus:ring-2 focus:ring-blue-100 outline-none transition-all text-slate-900 placeholder:text-slate-400 font-medium shadow-2xs"
-                            placeholder={
-                                isMobile && !isMobileExpanded 
-                                    ? "Search meetings..." 
-                                    : "Search (02-09-2026, 2 Sept, Sanand)..."
-                            }
-                            value={searchQuery}
-                            onFocus={() => {
-                                if (window.innerWidth < 640) {
-                                    setIsMobileExpanded(true);
+                    <Tooltip
+                        content="Search meetings by date (02-09-2026), month, site, or machine"
+                        position="bottom"
+                        hideOnFocus={true}
+                        className={`transition-all duration-200 ${
+                            isMobileExpanded 
+                                ? 'w-full flex-1' 
+                                : 'flex-1 max-w-[210px] min-[380px]:max-w-[240px] sm:flex-none sm:ml-auto sm:w-80'
+                        }`}
+                    >
+                        <div className="relative flex items-center w-full group">
+                            <Search className="absolute left-3 text-slate-400 pointer-events-none w-4 h-4 flex-shrink-0 transition-transform duration-300 group-focus-within:scale-110 group-focus-within:text-theme-breakdown" />
+                            <input 
+                                ref={inputRef}
+                                type="text" 
+                                className="w-full h-10 pl-9 sm:pl-9.5 pr-8 text-xs sm:text-[13px] bg-slate-50 border border-border-light rounded-xl focus:bg-white focus:border-theme-breakdown focus:ring-2 focus:ring-blue-100 outline-none transition-all text-slate-900 placeholder:text-slate-400 font-medium shadow-2xs"
+                                placeholder={
+                                    isMobile && !isMobileExpanded 
+                                        ? "Search meetings..." 
+                                        : "Search (02-09-2026, 2 Sept, Sanand)..."
                                 }
-                            }}
-                            onChange={(e) => onSearchChange(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Escape') {
-                                    onSearchChange('');
-                                    setIsMobileExpanded(false);
-                                    if (inputRef.current) inputRef.current.blur();
-                                }
-                            }}
-                            aria-label="Search meetings across archive"
-                        />
-                        {searchQuery && (
-                            <button 
-                                type="button"
-                                className="absolute right-2 w-6 h-6 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200 text-xs font-bold transition-all active:scale-90 cursor-pointer group" 
-                                onClick={() => {
-                                    onSearchChange('');
-                                    if (inputRef.current) inputRef.current.focus();
+                                value={searchQuery}
+                                onFocus={() => {
+                                    if (window.innerWidth < 640) {
+                                        setIsMobileExpanded(true);
+                                    }
                                 }}
-                                title="Clear search"
-                                aria-label="Clear search query"
-                            >
-                                <X className="w-3.5 h-3.5 transition-transform duration-200 hover:rotate-90 hover:scale-110" />
-                            </button>
-                        )}
-                    </div>
+                                onChange={(e) => onSearchChange(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Escape') {
+                                        onSearchChange('');
+                                        setIsMobileExpanded(false);
+                                        if (inputRef.current) inputRef.current.blur();
+                                    }
+                                }}
+                                aria-label="Search meetings across archive"
+                            />
+                            {searchQuery && (
+                                <button 
+                                    type="button"
+                                    className="absolute right-2 w-6 h-6 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200 text-xs font-bold transition-all active:scale-90 cursor-pointer group" 
+                                    onClick={() => {
+                                        onSearchChange('');
+                                        if (inputRef.current) inputRef.current.focus();
+                                    }}
+                                    title="Clear search"
+                                    aria-label="Clear search query"
+                                >
+                                    <X className="w-3.5 h-3.5 transition-transform duration-200 hover:rotate-90 hover:scale-110" />
+                                </button>
+                            )}
+                        </div>
+                    </Tooltip>
                 )}
             </div>
         </header>
