@@ -228,23 +228,36 @@ export function useTextHighlighter({ containerRef, meetingKey = 'default' } = {}
         }
     }, [getContainer]);
 
-    // Attach global selection tracking
+    // Attach global selection tracking (supports pointer, keyboard, and mobile selectionchange handles)
     useEffect(() => {
         if (typeof document === 'undefined') return;
+
+        let debounceTimer = null;
 
         const onPointerOrKeyUp = (e) => {
             if (e.target?.closest?.('.presentation-toolbar') || e.target?.closest?.('.text-highlight-popup')) {
                 return;
             }
+            if (debounceTimer) clearTimeout(debounceTimer);
             handleDocumentSelection(e);
+        };
+
+        const onSelectionChange = () => {
+            if (debounceTimer) clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                handleDocumentSelection();
+            }, 100);
         };
 
         document.addEventListener('pointerup', onPointerOrKeyUp);
         document.addEventListener('keyup', onPointerOrKeyUp);
+        document.addEventListener('selectionchange', onSelectionChange);
 
         return () => {
+            if (debounceTimer) clearTimeout(debounceTimer);
             document.removeEventListener('pointerup', onPointerOrKeyUp);
             document.removeEventListener('keyup', onPointerOrKeyUp);
+            document.removeEventListener('selectionchange', onSelectionChange);
         };
     }, [handleDocumentSelection]);
 
@@ -254,8 +267,23 @@ export function useTextHighlighter({ containerRef, meetingKey = 'default' } = {}
      * @param {{ start: number, end: number }} [targetInterval] Optional specific interval to update/clear
      */
     const applyTextHighlight = useCallback((color, targetInterval = null) => {
-        const start = targetInterval ? targetInterval.start : (activeRangeRef.current?.startOffset ?? selectionPopup?.startOffset);
-        const end = targetInterval ? targetInterval.end : (activeRangeRef.current?.endOffset ?? selectionPopup?.endOffset);
+        let start = targetInterval ? targetInterval.start : (activeRangeRef.current?.startOffset ?? selectionPopup?.startOffset);
+        let end = targetInterval ? targetInterval.end : (activeRangeRef.current?.endOffset ?? selectionPopup?.endOffset);
+
+        // Fallback: If pending, inspect live window.getSelection() directly
+        if ((start === undefined || end === undefined || start >= end) && typeof window !== 'undefined') {
+            const sel = window.getSelection();
+            if (sel && !sel.isCollapsed && sel.rangeCount > 0) {
+                const container = getContainer();
+                if (container) {
+                    const offsets = domRangeToOffsets(container, sel.getRangeAt(0));
+                    if (offsets) {
+                        start = offsets.startOffset;
+                        end = offsets.endOffset;
+                    }
+                }
+            }
+        }
 
         if (start === undefined || end === undefined || start >= end) {
             setSelectionPopup(null);
@@ -271,11 +299,16 @@ export function useTextHighlighter({ containerRef, meetingKey = 'default' } = {}
             return updated;
         });
 
-        // Clear active selection in browser so the highlight is immediately visible
-        try {
-            window.getSelection()?.removeAllRanges();
-        } catch {
-            // Ignore
+        // Clear active selection in browser smoothly so the highlight is immediately visible
+        // using requestAnimationFrame ensures mobile touch handles cleanly finalize without gesture cancellation
+        if (typeof window !== 'undefined') {
+            requestAnimationFrame(() => {
+                try {
+                    window.getSelection()?.removeAllRanges();
+                } catch {
+                    // Ignore
+                }
+            });
         }
 
         setSelectionPopup(null);

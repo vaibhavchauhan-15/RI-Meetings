@@ -51,10 +51,11 @@ export function getTextNodes(container) {
                 if (!parent) return NodeFilter.FILTER_REJECT;
                 
                 // Reject script, style, inputs, buttons, and presentation overlays
-                if (['SCRIPT', 'STYLE'].includes(parent.tagName)) {
+                const tagName = parent.tagName;
+                if (tagName === 'SCRIPT' || tagName === 'STYLE') {
                     return NodeFilter.FILTER_REJECT;
                 }
-                if (parent.closest('button, input, textarea, select, .presentation-toolbar, .text-highlight-popup, .laser-pointer-dot, .laser-click-ring')) {
+                if (parent.closest && parent.closest('button, input, textarea, select, .presentation-toolbar, .text-highlight-popup, .laser-pointer-dot, .laser-click-ring')) {
                     return NodeFilter.FILTER_REJECT;
                 }
                 return NodeFilter.FILTER_ACCEPT;
@@ -73,6 +74,7 @@ export function getTextNodes(container) {
  * Convert a live DOM Selection Range to exact character offsets within container text.
  * Robust across text nodes, arbitrary element nodes (div, p, span, tr, td),
  * multi-card selections, and partial bounds.
+ * Optimized for O(1) text-node resolution without expensive layout recalculations.
  */
 export function domRangeToOffsets(container, range) {
     if (!container || !range || typeof document === 'undefined') return null;
@@ -89,57 +91,73 @@ export function domRangeToOffsets(container, range) {
     if (textNodes.length === 0) return null;
 
     let totalLength = 0;
+    const cumOffsets = new Array(textNodes.length);
+    const textNodeMap = new Map();
+
     for (let i = 0; i < textNodes.length; i++) {
-        totalLength += textNodes[i].textContent.length;
+        cumOffsets[i] = totalLength;
+        textNodeMap.set(textNodes[i], i);
+        totalLength += textNodes[i].textContent ? textNodes[i].textContent.length : 0;
     }
     if (totalLength === 0) return null;
 
     /**
      * Compute the exact character offset of any boundary point (node, offset) in container
+     * Fast-paths text nodes with O(1) map lookup.
      */
     const getOffsetOfPoint = (node, offset) => {
         if (!node) return 0;
         if (node === container && offset === 0) return 0;
+
+        // O(1) Fast-Path: Node is directly one of our collected text nodes
+        const tIndex = textNodeMap.get(node);
+        if (tIndex !== undefined) {
+            const tLen = textNodes[tIndex].textContent ? textNodes[tIndex].textContent.length : 0;
+            return cumOffsets[tIndex] + Math.max(0, Math.min(offset, tLen));
+        }
+
         if (!container.contains(node)) {
             const comp = container.compareDocumentPosition(node);
             if (comp & Node.DOCUMENT_POSITION_PRECEDING) return 0;
             if (comp & Node.DOCUMENT_POSITION_FOLLOWING) return totalLength;
         }
 
-        let charCount = 0;
+        // Element boundary offset (e.g. triple click or element selection boundary)
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            const childNodes = node.childNodes;
+            if (childNodes && offset < childNodes.length) {
+                const targetChild = childNodes[offset];
+                for (let i = 0; i < textNodes.length; i++) {
+                    const tNode = textNodes[i];
+                    if (targetChild === tNode || (targetChild.contains && targetChild.contains(tNode))) {
+                        return cumOffsets[i];
+                    }
+                    if (targetChild.compareDocumentPosition) {
+                        const pos = targetChild.compareDocumentPosition(tNode);
+                        if (pos & Node.DOCUMENT_POSITION_FOLLOWING) {
+                            return cumOffsets[i];
+                        }
+                    }
+                }
+            } else if (childNodes && offset >= childNodes.length) {
+                for (let i = textNodes.length - 1; i >= 0; i--) {
+                    const tNode = textNodes[i];
+                    if (node.contains && node.contains(tNode)) {
+                        return cumOffsets[i] + (tNode.textContent ? tNode.textContent.length : 0);
+                    }
+                }
+            }
+        }
 
+        // Fallback document position
+        let charCount = 0;
         for (let i = 0; i < textNodes.length; i++) {
             const tNode = textNodes[i];
-            const tLen = tNode.textContent.length;
-
+            const tLen = tNode.textContent ? tNode.textContent.length : 0;
             if (node === tNode) {
                 return charCount + Math.max(0, Math.min(offset, tLen));
             }
-
-            if (node.nodeType === Node.ELEMENT_NODE) {
-                if (node.contains(tNode)) {
-                    // Find direct child of node containing tNode
-                    let child = tNode;
-                    while (child.parentNode && child.parentNode !== node) {
-                        child = child.parentNode;
-                    }
-                    const childIndex = Array.prototype.indexOf.call(node.childNodes, child);
-                    if (childIndex < offset) {
-                        charCount += tLen;
-                        continue;
-                    } else {
-                        return charCount;
-                    }
-                } else {
-                    const pos = node.compareDocumentPosition(tNode);
-                    if (pos & Node.DOCUMENT_POSITION_FOLLOWING) {
-                        return charCount;
-                    } else if (pos & Node.DOCUMENT_POSITION_PRECEDING) {
-                        charCount += tLen;
-                        continue;
-                    }
-                }
-            } else {
+            if (node.compareDocumentPosition) {
                 const pos = node.compareDocumentPosition(tNode);
                 if (pos & Node.DOCUMENT_POSITION_FOLLOWING) {
                     return charCount;
@@ -148,6 +166,7 @@ export function domRangeToOffsets(container, range) {
                     continue;
                 }
             }
+            charCount += tLen;
         }
 
         return charCount;
@@ -167,20 +186,88 @@ export function domRangeToOffsets(container, range) {
 }
 
 /**
+ * Precomputes client bounding rects for highlight intervals.
+ * Used by Eraser to eliminate layout recalculations and DOM tree walkers on pointer move.
+ */
+export function getHighlightHitRects(container, intervals = []) {
+    if (!container || !intervals || intervals.length === 0 || typeof document === 'undefined') {
+        return [];
+    }
+    const textNodes = getTextNodes(container);
+    if (textNodes.length === 0) return [];
+
+    // Snapshot scroll position at time of caching to enable scroll delta compensation
+    const scrollX = container.scrollLeft !== undefined ? container.scrollLeft : (typeof window !== 'undefined' ? window.scrollX || 0 : 0);
+    const scrollY = container.scrollTop !== undefined ? container.scrollTop : (typeof window !== 'undefined' ? window.scrollY || 0 : 0);
+
+    const results = [];
+    for (const item of intervals) {
+        const ranges = offsetsToDomRanges(container, item.start, item.end, textNodes);
+        const rects = [];
+        for (const range of ranges) {
+            const clientRects = range.getClientRects();
+            for (let i = 0; i < clientRects.length; i++) {
+                rects.push(clientRects[i]);
+            }
+        }
+        if (rects.length > 0) {
+            results.push({ item, rects, scrollX, scrollY });
+        }
+    }
+    return results;
+}
+
+/**
  * Identify any highlight interval present at client coordinates (clientX, clientY).
  * Enables the Eraser tool to cleanly target text highlights.
+ * Supports optional pre-cached hit rects for 0ms lag-free pointer dragging.
  */
-export function findHighlightAtPoint(container, clientX, clientY, intervals = []) {
-    if (!container || !intervals || intervals.length === 0 || typeof document === 'undefined') {
+export function findHighlightAtPoint(container, clientX, clientY, intervals = [], cachedHitRects = null) {
+    if (!container || !intervals || intervals.length === 0) {
+        return null;
+    }
+
+    const PADDING = 8; // Pixel tolerance for touch and mouse ergonomics
+
+    // 0. Fast-path: Check cached hit rects with scroll compensation (0ms zero-reflow path)
+    if (cachedHitRects && cachedHitRects.length > 0) {
+        const curScrollX = container.scrollLeft !== undefined ? container.scrollLeft : (typeof window !== 'undefined' ? window.scrollX || 0 : 0);
+        const curScrollY = container.scrollTop !== undefined ? container.scrollTop : (typeof window !== 'undefined' ? window.scrollY || 0 : 0);
+
+        for (const entry of cachedHitRects) {
+            const rects = entry.rects;
+            const deltaX = entry.scrollX !== undefined ? curScrollX - entry.scrollX : 0;
+            const deltaY = entry.scrollY !== undefined ? curScrollY - entry.scrollY : 0;
+
+            for (let i = 0; i < rects.length; i++) {
+                const rect = rects[i];
+                const adjLeft = rect.left - deltaX;
+                const adjRight = rect.right - deltaX;
+                const adjTop = rect.top - deltaY;
+                const adjBottom = rect.bottom - deltaY;
+
+                if (
+                    clientX >= adjLeft - PADDING &&
+                    clientX <= adjRight + PADDING &&
+                    clientY >= adjTop - PADDING &&
+                    clientY <= adjBottom + PADDING
+                ) {
+                    return entry.item;
+                }
+            }
+        }
+        return null;
+    }
+
+    if (typeof document === 'undefined') {
         return null;
     }
 
     // 1. Primary Method: Direct Geometry Matching via DOM Range ClientRects.
     // Completely immune to canvas layers, z-index overlays, CSS Custom Highlights, or replaced elements.
-    const PADDING = 8; // Pixel tolerance for touch and mouse ergonomics
-
+    const textNodes = getTextNodes(container);
     for (const item of intervals) {
-        const ranges = offsetsToDomRanges(container, item.start, item.end);
+        const ranges = offsetsToDomRanges(container, item.start, item.end, textNodes);
         for (const range of ranges) {
             const rects = range.getClientRects();
             for (let i = 0; i < rects.length; i++) {
@@ -251,16 +338,17 @@ export function findHighlightAtPoint(container, clientX, clientY, intervals = []
 
 /**
  * Convert character offsets [startOffset, endOffset] to an array of single-text-node DOM Ranges.
+ * Accepts optional pre-fetched textNodes to avoid repeated tree traversals.
  */
-export function offsetsToDomRanges(container, startOffset, endOffset) {
+export function offsetsToDomRanges(container, startOffset, endOffset, textNodes = null) {
     if (!container || startOffset >= endOffset || typeof document === 'undefined') return [];
-    const textNodes = getTextNodes(container);
+    const nodes = textNodes || getTextNodes(container);
     let currentOffset = 0;
     const ranges = [];
 
-    for (let i = 0; i < textNodes.length; i++) {
-        const node = textNodes[i];
-        const len = node.textContent.length;
+    for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        const len = node.textContent ? node.textContent.length : 0;
         const nodeStart = currentOffset;
         const nodeEnd = currentOffset + len;
 
@@ -384,8 +472,12 @@ export function renderHighlights(container, intervals = []) {
 
 /**
  * Render using CSS Custom Highlights API (zero DOM manipulation, 60fps, 100% React-safe)
+ * Collects text nodes once for the entire render cycle.
  */
 function renderCSSHighlights(container, intervals) {
+    const textNodes = getTextNodes(container);
+    if (textNodes.length === 0) return;
+
     const colorRangesMap = {
         yellow: [],
         cyan: [],
@@ -395,7 +487,7 @@ function renderCSSHighlights(container, intervals) {
 
     intervals.forEach(item => {
         if (!colorRangesMap[item.color]) return;
-        const domRanges = offsetsToDomRanges(container, item.start, item.end);
+        const domRanges = offsetsToDomRanges(container, item.start, item.end, textNodes);
         colorRangesMap[item.color].push(...domRanges);
     });
 
@@ -451,9 +543,12 @@ function renderDOMFallbackHighlights(container, intervals) {
     // 2. Normalize text nodes to eliminate previous splits
     container.normalize();
 
+    const textNodes = getTextNodes(container);
+    if (textNodes.length === 0) return;
+
     // 3. Apply each interval by wrapping single text nodes
     intervals.forEach(item => {
-        const ranges = offsetsToDomRanges(container, item.start, item.end);
+        const ranges = offsetsToDomRanges(container, item.start, item.end, textNodes);
         ranges.forEach(range => {
             try {
                 const mark = document.createElement('mark');

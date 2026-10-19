@@ -225,27 +225,42 @@
 @keyframes laserHaloBreath {
   0%, 100% {
     transform: scale(1);
-    opacity: 0.5;
+    opacity: 0.55;
   }
   50% {
-    transform: scale(1.3);
-    opacity: 0.85;
+    transform: scale(1.35);
+    opacity: 0.9;
   }
 }
 
 @keyframes laserRipplePulse {
   0% {
-    transform: translate(-50%, -50%) scale(0.25);
-    opacity: 0.95;
-    box-shadow: 0 0 4px #ef4444, 0 0 10px rgba(239, 68, 68, 0.8);
+    transform: translate(-50%, -50%) scale(0.28);
+    opacity: 1;
+    filter: brightness(1.25);
+    box-shadow: 0 0 6px #ff0055, 0 0 12px rgba(255, 23, 68, 0.9), inset 0 0 5px rgba(255, 255, 255, 0.75);
   }
-  50% {
-    opacity: 0.6;
+  40% {
+    opacity: 0.8;
   }
   100% {
-    transform: translate(-50%, -50%) scale(2.4);
+    transform: translate(-50%, -50%) scale(1.85);
     opacity: 0;
-    box-shadow: 0 0 16px rgba(239, 68, 68, 0);
+    box-shadow: 0 0 16px rgba(255, 0, 85, 0), inset 0 0 6px rgba(255, 23, 68, 0);
+  }
+}
+
+@keyframes laserRippleSubWave {
+  0% {
+    transform: translate(-50%, -50%) scale(0.22);
+    opacity: 0.85;
+  }
+  40% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.4);
+    opacity: 0;
   }
 }
 
@@ -261,47 +276,66 @@
   transition: opacity 0.12s ease-out;
 }
 
-/* Subtle outer glowing halo */
+/* Subtle outer glowing halo with saturated neon-laser bloom */
 .laser-pointer-dot::before {
   content: '';
   position: absolute;
-  top: -12px;
-  left: -12px;
-  width: 24px;
-  height: 24px;
+  top: -14px;
+  left: -14px;
+  width: 28px;
+  height: 28px;
   border-radius: 9999px;
-  background: radial-gradient(circle, rgba(239, 68, 68, 0.45) 0%, rgba(239, 68, 68, 0.15) 50%, transparent 75%);
+  background: radial-gradient(circle, rgba(255, 0, 85, 0.52) 0%, rgba(255, 23, 68, 0.22) 45%, transparent 75%);
   animation: laserHaloBreath 2s ease-in-out infinite;
   pointer-events: none;
 }
 
-/* Small, precise glowing red dot */
+/* Small, precise glowing red dot with saturated core and white-hot spark */
 .laser-pointer-dot::after {
   content: '';
   position: absolute;
-  top: -4px;
-  left: -4px;
-  width: 8px;
-  height: 8px;
+  top: -4.5px;
+  left: -4.5px;
+  width: 9px;
+  height: 9px;
   border-radius: 9999px;
-  background-color: #ef4444;
+  background: radial-gradient(circle, #ffffff 18%, #ff1744 65%, #d50000 100%);
   border: 1.5px solid #ffffff;
-  box-shadow: 0 0 6px #ef4444, 0 0 12px rgba(239, 68, 68, 0.85), 0 0 18px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 6px #ff1744, 0 0 14px rgba(255, 0, 85, 0.95), 0 0 22px rgba(255, 23, 68, 0.55);
   pointer-events: none;
 }
 
 .laser-click-ripple,
 .laser-click-ring {
   position: fixed;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 9999px;
-  border: 2px solid #ef4444;
-  background: radial-gradient(circle, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.08) 50%, transparent 75%);
+  border: 2px solid #ff1744;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.88) 0%, rgba(255, 0, 85, 0.32) 35%, rgba(255, 23, 68, 0.1) 65%, transparent 80%);
   pointer-events: none;
   z-index: 9998;
-  animation: laserRipplePulse 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: laserRipplePulse 0.42s cubic-bezier(0.14, 0.88, 0.25, 1) forwards;
   will-change: transform, opacity;
+  box-sizing: border-box;
+}
+
+/* Secondary concentric tactile shockwave for clean micro-echo */
+.laser-click-ripple::after,
+.laser-click-ring::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(255, 82, 82, 0.85);
+  box-shadow: 0 0 6px rgba(255, 23, 68, 0.5);
+  pointer-events: none;
+  animation: laserRippleSubWave 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+  box-sizing: border-box;
 }
 
 /* ========================================================= */
@@ -552,7 +586,9 @@ mark.text-hl-pink {
   .laser-pointer-dot,
   .laser-pointer-dot::before,
   .laser-click-ripple,
+  .laser-click-ripple::after,
   .laser-click-ring,
+  .laser-click-ring::after,
   .animate-bounce-subtle,
   .animate-pulse-subtle,
   .animate-scale-check,

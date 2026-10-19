@@ -11,7 +11,7 @@
     "db:migrate": "node scripts/apply-migration.js",
     "meeting:sync": "node scripts/sync-supabase.js",
     "sync:supabase": "node scripts/sync-supabase.js",
-    "test": "node scripts/verify-holidays.js && node scripts/test-search.js && node scripts/test-normalizers-schemas.js && node scripts/test-annotation-engine.js && node scripts/test-laser-pointer-engine.js",
+    "test": "node scripts/verify-holidays.js && node scripts/test-search.js && node scripts/test-normalizers-schemas.js && node scripts/test-annotation-engine.js && node scripts/test-laser-pointer-engine.js && node scripts/test-presentation-performance.js",
     "test:visual": "node scripts/test-visual-calendar.js"
   },
   "dependencies": {

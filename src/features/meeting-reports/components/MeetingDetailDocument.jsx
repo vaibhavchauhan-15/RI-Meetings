@@ -8,8 +8,7 @@ import {
     PartyPopper, 
     ArrowRight, 
     WifiOff, 
-    Info, 
-    FileText 
+    Info 
 } from 'lucide-react';
 import { formatDateDDMMYYYY } from '../utils/meetingDateUtils.js';
 import { formatMeetingSummary, copyTextToClipboard } from '../utils/meetingFormatters.js';
@@ -19,6 +18,7 @@ import DirectivesSection from './DirectivesSection.jsx';
 import ActionItemsSection from './ActionItemsSection.jsx';
 import ChronologicalNav from './ChronologicalNav.jsx';
 import MeetingShareMenu from '../../../components/shared/MeetingShareMenu.jsx';
+import Tooltip from '../../../components/shared/Tooltip.jsx';
 import { exportMeetingBreakdownsToExcel } from '../services/excelExportService.js';
 
 /**
@@ -77,18 +77,14 @@ export function MeetingDetailDocument({
             <header className="flex flex-col gap-3 pb-5 border-b border-border-light">
                 <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
                     <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded inline-flex items-center gap-1">
-                                <FileText className="w-3 h-3 text-slate-500" />
-                                <span>Operational Meeting Report</span>
-                            </span>
-                            {isHoliday && (
+                        {isHoliday && (
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
                                 <span className="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300 inline-flex items-center gap-1">
                                     <PartyPopper className="w-3 h-3 text-amber-800" />
                                     <span>{meeting.holidayName || 'Official Holiday'}</span>
                                 </span>
-                            )}
-                        </div>
+                            </div>
+                        )}
                         <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mt-1">
                             {displayDate}
                         </h2>
@@ -96,53 +92,66 @@ export function MeetingDetailDocument({
 
                     {/* Quick Action Buttons */}
                     <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap select-none">
-                        {/* Copy Summary Button - Icon Only */}
-                        <button
-                            type="button"
-                            onClick={handleCopy}
-                            className={`w-9 h-9 rounded-xl border transition-all cursor-pointer active:scale-95 flex items-center justify-center flex-shrink-0 group ${
-                                copySuccess
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300 shadow-2xs'
-                                    : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border-border-light shadow-2xs'
-                            }`}
-                            title={copySuccess ? 'Copied summary to clipboard!' : 'Copy summary to clipboard'}
-                            aria-label={copySuccess ? 'Copied summary' : 'Copy summary'}
+                        {/* Copy Summary Button - Icon Only with Tooltip */}
+                        <Tooltip
+                            content={copySuccess ? 'Copied summary!' : 'Copy summary'}
+                            position="bottom"
                         >
-                            {copySuccess ? (
-                                <Check className="w-4 h-4 text-emerald-600 animate-scale-check" />
-                            ) : (
-                                <Copy className="w-4 h-4 text-slate-600 transition-transform duration-200 group-hover:scale-110" />
-                            )}
-                        </button>
-
-                        {/* Excel Export Button - Icon Only */}
-                        <button
-                            type="button"
-                            onClick={handleExportExcel}
-                            disabled={isExportingExcel}
-                            className="w-9 h-9 rounded-xl border border-border-light bg-white hover:bg-slate-50 text-emerald-700 hover:text-emerald-800 shadow-2xs transition-all cursor-pointer active:scale-95 disabled:opacity-50 flex items-center justify-center flex-shrink-0 group"
-                            title={isExportingExcel ? 'Generating Excel report...' : 'Export breakdowns to formatted Excel (.xlsx)'}
-                            aria-label="Export breakdowns to formatted Excel"
-                        >
-                            {isExportingExcel ? (
-                                <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
-                            ) : (
-                                <FileSpreadsheet className="w-4 h-4 text-emerald-700 transition-transform duration-200 group-hover:scale-110" />
-                            )}
-                        </button>
-
-                        {/* Presentation Mode Button */}
-                        {onOpenPresentation && (
                             <button
                                 type="button"
-                                onClick={onOpenPresentation}
-                                className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#00a8cc] to-[#0b84a5] hover:from-[#0096b8] hover:to-[#097390] text-white shadow-primary-btn transition-all cursor-pointer active:scale-95 min-h-[36px] group"
-                                title="Open Presentation Mode (Laser pointer, drawing tools)"
-                                aria-label="Open Presentation Mode"
+                                onClick={handleCopy}
+                                className={`w-9 h-9 rounded-xl border transition-all cursor-pointer active:scale-95 flex items-center justify-center flex-shrink-0 group ${
+                                    copySuccess
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300 shadow-2xs'
+                                        : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border-border-light shadow-2xs'
+                                }`}
+                                aria-label={copySuccess ? 'Copied summary' : 'Copy summary'}
                             >
-                                <Presentation className="w-3.5 h-3.5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
-                                <span>Present</span>
+                                {copySuccess ? (
+                                    <Check className="w-4 h-4 text-emerald-600 animate-scale-check" />
+                                ) : (
+                                    <Copy className="w-4 h-4 text-slate-600 transition-transform duration-200 group-hover:scale-110" />
+                                )}
                             </button>
+                        </Tooltip>
+
+                        {/* Excel Export Button - Icon Only with Tooltip */}
+                        <Tooltip
+                            content={isExportingExcel ? 'Generating Excel report...' : 'Export breakdowns to Excel (.xlsx)'}
+                            position="bottom"
+                        >
+                            <button
+                                type="button"
+                                onClick={handleExportExcel}
+                                disabled={isExportingExcel}
+                                className="w-9 h-9 rounded-xl border border-border-light bg-white hover:bg-slate-50 text-emerald-700 hover:text-emerald-800 shadow-2xs transition-all cursor-pointer active:scale-95 disabled:opacity-50 flex items-center justify-center flex-shrink-0 group"
+                                aria-label="Export breakdowns to formatted Excel"
+                            >
+                                {isExportingExcel ? (
+                                    <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
+                                ) : (
+                                    <FileSpreadsheet className="w-4 h-4 text-emerald-700 transition-transform duration-200 group-hover:scale-110" />
+                                )}
+                            </button>
+                        </Tooltip>
+
+                        {/* Presentation Mode Button with Tooltip */}
+                        {onOpenPresentation && (
+                            <Tooltip
+                                content="Presentation Mode (Laser & annotations)"
+                                shortcut="P"
+                                position="bottom"
+                            >
+                                <button
+                                    type="button"
+                                    onClick={onOpenPresentation}
+                                    className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#00a8cc] to-[#0b84a5] hover:from-[#0096b8] hover:to-[#097390] text-white shadow-primary-btn transition-all cursor-pointer active:scale-95 min-h-[36px] group"
+                                    aria-label="Open Presentation Mode"
+                                >
+                                    <Presentation className="w-3.5 h-3.5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                                    <span>Present</span>
+                                </button>
+                            </Tooltip>
                         )}
 
                         {/* Share Menu */}

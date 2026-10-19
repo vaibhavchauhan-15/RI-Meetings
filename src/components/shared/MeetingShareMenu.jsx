@@ -16,6 +16,7 @@ import {
 import { formatMeetingSummary, copyTextToClipboard } from '../../features/meeting-reports/utils/meetingFormatters.js';
 import { formatDateDDMMYYYY } from '../../features/meeting-reports/utils/meetingDateUtils.js';
 import { exportMeetingBreakdownsToExcel } from '../../features/meeting-reports/services/excelExportService.js';
+import Tooltip from './Tooltip.jsx';
 
 export default function MeetingShareMenu({ meeting, disabled = false }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -180,30 +181,28 @@ export default function MeetingShareMenu({ meeting, disabled = false }) {
 
     return (
         <div ref={menuRef} className="relative inline-block text-left">
-            {/* Trigger Share Button */}
-            <button
-                type="button"
-                onClick={() => setIsOpen(prev => !prev)}
-                disabled={disabled}
-                className={`relative w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 border flex-shrink-0 cursor-pointer group ${
-                    isOpen 
-                        ? 'bg-slate-900 text-white border-slate-900 shadow-xs' 
-                        : 'bg-white text-slate-500 border-border-light hover:text-theme-breakdown hover:border-theme-breakdown hover:bg-slate-50 shadow-2xs'
-                } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                title={isOpen ? 'Close share menu' : 'Share meeting summary'}
-                aria-label="Share meeting summary"
-                aria-haspopup="true"
-                aria-expanded={isOpen}
+            {/* Trigger Share Button with Tooltip */}
+            <Tooltip
+                content="Share meeting summary"
+                position="bottom-end"
+                disabled={isOpen}
             >
-                <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:scale-110" />
-
-                {/* Hover Tooltip when closed */}
-                {!isOpen && (
-                    <span className="absolute right-full mr-2 px-2 py-0.5 rounded-md text-[11px] font-bold whitespace-nowrap bg-slate-900 text-white opacity-0 group-hover:opacity-100 pointer-events-none transition-all shadow-md z-30">
-                        Share
-                    </span>
-                )}
-            </button>
+                <button
+                    type="button"
+                    onClick={() => setIsOpen(prev => !prev)}
+                    disabled={disabled}
+                    className={`relative w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 border flex-shrink-0 cursor-pointer group ${
+                        isOpen 
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-xs' 
+                            : 'bg-white text-slate-500 border-border-light hover:text-theme-breakdown hover:border-theme-breakdown hover:bg-slate-50 shadow-2xs'
+                    } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    aria-label="Share meeting summary"
+                    aria-haspopup="true"
+                    aria-expanded={isOpen}
+                >
+                    <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:scale-110" />
+                </button>
+            </Tooltip>
 
             {/* Share Popover Dropdown Menu */}
             {isOpen && (
