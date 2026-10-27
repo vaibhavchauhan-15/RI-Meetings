@@ -1,5 +1,5 @@
 /**
- * Reach International Operations - Daily Meeting Sync (23-10-2026, 24-10-2026 & 25-10-2026)
+ * Reach International Operations - Daily Meeting & Holiday Sync (23, 24, 25 & 26 Oct 2026)
  *
  * Implements strict Reach International standards:
  * - 100% Cloud-Native ingestion (zero static JSON files in src/data/)
@@ -326,6 +326,22 @@ export const meeting25 = {
     title: "25-10-2026",
     date: "2026-10-25",
     dateFormatted: "25-10-2026",
+    focus: "Weekly Official Holiday (Sunday) – Corporate Offices & Fleet Operations Closed",
+    isHoliday: true,
+    holidayName: "Sunday (Weekly Off)",
+    noMeetingHeld: false,
+    notRecorded: false,
+    breakdowns: [],
+    parts: [],
+    directives: [],
+    actionItems: []
+};
+
+export const meeting26 = {
+    id: "meet-2026-10-26",
+    title: "26-10-2026",
+    date: "2026-10-26",
+    dateFormatted: "26-10-2026",
     focus: "Mundra S-85 auxiliary motor failure and gate pass deadlock, Sabarmati 860SJ chronic downtime, Cross-rental 5390 platform railing collapse, Jammu 4047 voltage mismatch, and Assam 135 emergency battery fault.",
     isHoliday: false,
     holidayName: "",
@@ -625,41 +641,39 @@ async function verifyMeeting(meetingData) {
 
 async function run() {
     console.log('====================================================');
-    console.log('🚀 Reach International Daily Meeting Supabase Ingestion (23-25 Oct 2026)');
+    console.log('🚀 Reach International Daily Meeting Supabase Ingestion (23-26 Oct 2026)');
     console.log('====================================================');
 
     // 1. Ingest 23-10-2026
     console.log('\n📥 Ingesting Meeting: 23-10-2026...');
     const res23 = await syncDailyMeeting(meeting23);
-    console.log(`✅ Successfully synced ${res23.meetingId}:`);
-    console.log(`   - ${res23.counts.breakdowns} breakdown machines`);
-    console.log(`   - ${res23.counts.parts} parts`);
-    console.log(`   - ${res23.counts.directives} directives`);
-    console.log(`   - ${res23.counts.actionItems} action items`);
+    console.log(`✅ Successfully synced ${res23.meetingId}`);
     await verifyMeeting(meeting23);
 
     // 2. Ingest 24-10-2026
     console.log('\n📥 Ingesting Meeting: 24-10-2026...');
     const res24 = await syncDailyMeeting(meeting24);
-    console.log(`✅ Successfully synced ${res24.meetingId}:`);
-    console.log(`   - ${res24.counts.breakdowns} breakdown machines`);
-    console.log(`   - ${res24.counts.parts} parts`);
-    console.log(`   - ${res24.counts.directives} directives`);
-    console.log(`   - ${res24.counts.actionItems} action items`);
+    console.log(`✅ Successfully synced ${res24.meetingId}`);
     await verifyMeeting(meeting24);
 
-    // 3. Ingest 25-10-2026
-    console.log('\n📥 Ingesting Meeting: 25-10-2026...');
+    // 3. Ingest 25-10-2026 (Sunday Weekly Off)
+    console.log('\n📥 Ingesting Meeting: 25-10-2026 (Sunday Weekly Off)...');
     const res25 = await syncDailyMeeting(meeting25);
-    console.log(`✅ Successfully synced ${res25.meetingId}:`);
-    console.log(`   - ${res25.counts.breakdowns} breakdown machines`);
-    console.log(`   - ${res25.counts.parts} parts`);
-    console.log(`   - ${res25.counts.directives} directives`);
-    console.log(`   - ${res25.counts.actionItems} action items`);
+    console.log(`✅ Successfully synced ${res25.meetingId}: Holiday=${res25.title}`);
     await verifyMeeting(meeting25);
 
+    // 4. Ingest 26-10-2026 (Monday Meeting)
+    console.log('\n📥 Ingesting Meeting: 26-10-2026 (Monday Meeting)...');
+    const res26 = await syncDailyMeeting(meeting26);
+    console.log(`✅ Successfully synced ${res26.meetingId}:`);
+    console.log(`   - ${res26.counts.breakdowns} breakdown machines`);
+    console.log(`   - ${res26.counts.parts} parts`);
+    console.log(`   - ${res26.counts.directives} directives`);
+    console.log(`   - ${res26.counts.actionItems} action items`);
+    await verifyMeeting(meeting26);
+
     console.log('\n====================================================');
-    console.log('🎉 ALL MEETINGS (23-OCT, 24-OCT, 25-OCT) SUCCESSFULLY INGESTED & VERIFIED IN SUPABASE!');
+    console.log('🎉 ALL MEETINGS (23-OCT, 24-OCT, 25-OCT SUNDAY, 26-OCT MONDAY) SUCCESSFULLY INGESTED & VERIFIED!');
     console.log('====================================================');
 }
 
