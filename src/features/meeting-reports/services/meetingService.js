@@ -5,8 +5,8 @@
  * Provides in-memory caching for snappy UI responses and robust error handling.
  */
 
-import { supabase } from '../../../lib/supabase/client.js';
-import { DatabaseError, NotFoundError } from '../../../lib/errors/AppError.js';
+import { supabase, executeQuery } from '../../../lib/api/apiClient.js';
+import { DatabaseError, NotFoundError, AppError } from '../../../lib/errors/AppError.js';
 import { 
     formatDateDDMMYYYY, 
     normalizeDateToYYYYMMDD, 
@@ -64,14 +64,18 @@ export async function fetchYearsIndex() {
     }
 
     try {
-        const { data: rows, error } = await supabase
+        const query = supabase
             .from('meetings')
             .select('id, date, title, focus, is_holiday, holiday_name, no_meeting_held, not_recorded, breakdowns_count, parts_count, directives_count, action_items_count')
             .order('date', { ascending: true });
 
-        if (error) {
-            throw new DatabaseError(`Failed to fetch meetings index: ${error.message}`, { cause: error });
+        const result = await executeQuery(query, 'Failed to fetch meetings index');
+
+        if (!result.success) {
+            throw new DatabaseError(result.error);
         }
+
+        const rows = result.data;
 
         if (!rows || rows.length === 0) {
             return {
@@ -164,17 +168,20 @@ export async function fetchMonthIndex(year, month) {
     const endDate = `${yearStr}-${paddedMonth}-${String(lastDay).padStart(2, '0')}`;
 
     try {
-        const { data: rows, error } = await supabase
+        const query = supabase
             .from('meetings')
             .select('id, date, title, focus, is_holiday, holiday_name, no_meeting_held, not_recorded, breakdowns_count, parts_count, directives_count, action_items_count')
             .gte('date', startDate)
             .lte('date', endDate)
             .order('date', { ascending: false });
 
-        if (error) {
-            throw new DatabaseError(`Failed to fetch month index for ${yearStr}-${paddedMonth}: ${error.message}`, { cause: error });
+        const result = await executeQuery(query, `Failed to fetch month index for ${yearStr}-${paddedMonth}`);
+
+        if (!result.success) {
+            throw new DatabaseError(result.error);
         }
 
+        const rows = result.data;
         const meetings = (rows || []).map(r => normalizeMeetingRow(r));
         const monthInt = parseInt(paddedMonth, 10);
         const monthName = MONTH_NAMES[monthInt - 1] || 'Unknown';
@@ -224,15 +231,19 @@ export async function fetchMeetingDetail(pathOrDate) {
     }
 
     try {
-        const { data: row, error } = await supabase
+        const query = supabase
             .from('meetings')
             .select('*')
             .or(`id.eq.${meetingId},date.eq.${isoDate}`)
             .single();
 
-        if (error || !row) {
+        const result = await executeQuery(query, `Failed to fetch meeting document for ${pathOrDate}`);
+
+        if (!result.success || !result.data) {
             throw new NotFoundError('Meeting document', pathOrDate);
         }
+
+        const row = result.data;
 
         let meetingObject = null;
 
@@ -242,10 +253,10 @@ export async function fetchMeetingDetail(pathOrDate) {
         } else {
             // Reconstruct meeting object from child tables
             const [bRes, pRes, aRes, dRes] = await Promise.all([
-                supabase.from('breakdown_machines').select('*').eq('meeting_id', meetingId).order('created_at'),
-                supabase.from('meeting_parts').select('*').eq('meeting_id', meetingId),
-                supabase.from('meeting_action_items').select('*').eq('meeting_id', meetingId),
-                supabase.from('meeting_directives').select('*').eq('meeting_id', meetingId)
+                executeQuery(supabase.from('breakdown_machines').select('*').eq('meeting_id', meetingId).order('created_at'), 'Fetch breakdowns'),
+                executeQuery(supabase.from('meeting_parts').select('*').eq('meeting_id', meetingId), 'Fetch parts'),
+                executeQuery(supabase.from('meeting_action_items').select('*').eq('meeting_id', meetingId), 'Fetch action items'),
+                executeQuery(supabase.from('meeting_directives').select('*').eq('meeting_id', meetingId), 'Fetch directives')
             ]);
 
             meetingObject = {
@@ -309,7 +320,7 @@ export async function fetchSearchIndex() {
     }
 
     try {
-        const { data: rows, error } = await supabase
+        const query = supabase
             .from('meetings')
             .select(`
                 id, date, title, focus, is_holiday, holiday_name, no_meeting_held, not_recorded, 
@@ -320,9 +331,13 @@ export async function fetchSearchIndex() {
             `)
             .order('date', { ascending: false });
 
-        if (error) {
-            throw new DatabaseError(`Failed to fetch search index: ${error.message}`, { cause: error });
+        const result = await executeQuery(query, 'Failed to fetch search index');
+
+        if (!result.success) {
+            throw new DatabaseError(result.error);
         }
+
+        const rows = result.data;
 
         cachedSearchIndex = (rows || []).map(row => {
             const raw = row.raw_json || {};

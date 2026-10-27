@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { ChevronUp, AlertTriangle, RotateCcw, X } from 'lucide-react';
+import { ChevronUp } from 'lucide-react';
 import { useMeetingData } from '../hooks/useMeetingData.js';
 import { useMeetingUrlSync } from '../hooks/useMeetingUrlSync.js';
 import { useTextHighlighter } from '../hooks/useTextHighlighter.js';
@@ -11,7 +11,7 @@ import MeetingList from './MeetingList.jsx';
 import MeetingDetailDocument from './MeetingDetailDocument.jsx';
 import TextHighlightPopup from './TextHighlightPopup.jsx';
 import { MeetingDocumentSkeleton } from '../../../components/ui/Skeleton.jsx';
-import { ErrorBoundary } from '../../../components/ui/ErrorBoundary.jsx';
+import { ErrorBoundary, InlineError, PermissionDenied } from '../../../components/feedback/index.js';
 import PresentationOverlay from '../../../components/shared/PresentationOverlay.jsx';
 import HolidayCalendar from '../../holidays/components/HolidayCalendar.jsx';
 
@@ -285,34 +285,12 @@ export default function MeetingSummariesPage({
 
                 {/* Database / Network Error Banner */}
                 {error && (
-                    <div 
-                        className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-center justify-between gap-3 text-xs sm:text-sm text-red-700 animate-fade-in select-none"
-                        role="alert"
-                    >
-                        <div className="flex items-center gap-2">
-                            <AlertTriangle className="w-4 h-4 text-red-500 animate-pulse-subtle flex-shrink-0" />
-                            <span className="font-medium">{error}</span>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                            <button
-                                type="button"
-                                onClick={refreshData}
-                                className="group px-2.5 py-1 bg-white hover:bg-red-100 text-red-700 border border-red-300 rounded-lg font-bold text-xs transition-colors cursor-pointer active:scale-95 shadow-2xs flex items-center gap-1.5"
-                            >
-                                <RotateCcw className="w-3.5 h-3.5 transition-transform duration-300 group-hover:-rotate-90" />
-                                <span>Retry</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={clearError}
-                                className="p-1 text-red-400 hover:text-red-700 transition-colors cursor-pointer rounded flex items-center justify-center hover:scale-105 active:scale-95"
-                                title="Dismiss error"
-                                aria-label="Dismiss error"
-                            >
-                                <X className="w-4 h-4 transition-transform duration-200 hover:rotate-90" />
-                            </button>
-                        </div>
-                    </div>
+                    <InlineError
+                        error={error}
+                        variant="card"
+                        onRetry={refreshData}
+                        onDismiss={clearError}
+                    />
                 )}
 
                 {/* 2. Dual-Column Main Content Container: Left = Reports/Stream, Right = Calendar */}
@@ -372,6 +350,7 @@ export default function MeetingSummariesPage({
                                 isLoading={isLoadingInitial || isLoadingMonth}
                                 isSearching={isSearching}
                                 searchQuery={currentSearchQuery}
+                                onClearSearch={() => updateSearchQuery('')}
                                 containerRef={cardsContainerRef}
                             />
                         )}

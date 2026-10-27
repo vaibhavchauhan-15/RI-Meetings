@@ -1,7 +1,8 @@
 import React from 'react';
-import { SearchX, CalendarX2 } from 'lucide-react';
+import { CalendarX2 } from 'lucide-react';
 import MeetingCard from './MeetingCard.jsx';
 import { MeetingCardSkeleton } from '../../../components/ui/Skeleton.jsx';
+import { EmptyState, NoSearchResults } from '../../../components/feedback/index.js';
 
 /**
  * MeetingList Component
@@ -15,6 +16,7 @@ export function MeetingList({
     isLoading = false,
     isSearching = false,
     searchQuery = '',
+    onClearSearch,
     containerRef
 }) {
     if (isLoading) {
@@ -30,24 +32,29 @@ export function MeetingList({
 
     if (isSearching && meetings.length === 0) {
         return (
-            <div className="p-8 bg-slate-50 border border-border-light rounded-2xl text-center flex flex-col items-center justify-center gap-2">
-                <SearchX className="w-9 h-9 text-slate-400 animate-bounce-subtle" />
-                <h4 className="text-sm font-bold text-slate-800">No Meetings Found</h4>
-                <p className="text-xs text-slate-500 max-w-xs">
-                    No operational meeting matches your search query "{searchQuery}". Try searching by site name, date (02-09-2026), or machine model.
-                </p>
+            <div className="p-4 sm:p-6 bg-slate-50/60 rounded-2xl border border-border-light">
+                <NoSearchResults 
+                    query={searchQuery} 
+                    onClearSearch={onClearSearch}
+                    suggestions={[
+                        'Check for typos in machine models or site names',
+                        'Search by date format: "26-10-2026" or "2026-10-26"',
+                        'Search by stakeholder (e.g. "Raj Kishore", "Pradeep", "Dheeraj")',
+                        'Search by component (e.g. "cylinder", "battery", "pipe", "cable")'
+                    ]}
+                />
             </div>
         );
     }
 
     if (!isSearching && meetings.length === 0) {
         return (
-            <div className="p-8 bg-slate-50 border border-border-light rounded-2xl text-center flex flex-col items-center justify-center gap-2">
-                <CalendarX2 className="w-9 h-9 text-slate-400 animate-pulse-subtle" />
-                <h4 className="text-sm font-bold text-slate-800">No Meetings Recorded</h4>
-                <p className="text-xs text-slate-500 max-w-xs">
-                    There are no operational meetings logged for this selected month in the Reach database.
-                </p>
+            <div className="p-4 sm:p-6 bg-slate-50/60 rounded-2xl border border-border-light">
+                <EmptyState
+                    icon={CalendarX2}
+                    title="No Meetings Recorded"
+                    description="There are no operational meetings logged for this selected month in the Reach database."
+                />
             </div>
         );
     }
