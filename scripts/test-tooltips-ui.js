@@ -44,27 +44,42 @@ assert(shareMenuContent.includes('Tooltip'), 'Tooltip imported in MeetingShareMe
 assert(shareMenuContent.includes('content="Share meeting summary"'), 'Share button has hover tooltip');
 console.log('✓ PASS: Share menu button wrapped in Tooltip');
 
-// 4. MeetingHeaderBar: Back & Calendar Tooltips
-console.log('\n--- 4. MeetingHeaderBar Verification ---');
+// 4. MeetingHeaderBar: Verified Removal of Redundant Tooltips on Labeled Buttons
+console.log('\n--- 4. MeetingHeaderBar Tooltip Verification ---');
 const headerBarContent = fs.readFileSync(path.resolve('src/features/meeting-reports/components/MeetingHeaderBar.jsx'), 'utf8');
-assert(headerBarContent.includes('Tooltip'), 'Tooltip imported in MeetingHeaderBar');
-assert(headerBarContent.includes('content="Return to all operational meetings archive"'), 'Back to All Meetings has hover tooltip');
-assert(headerBarContent.includes('2026 Indian & Company Holiday Calendar'), '2026 Calendar & Holidays button has hover tooltip');
-console.log('✓ PASS: Back to All Meetings and Calendar buttons wrapped in Tooltip');
+assert(!headerBarContent.includes('Tooltip'), 'Unwanted Tooltip wrapper removed from MeetingHeaderBar');
+assert(!headerBarContent.includes('content="Return to all operational meetings archive"'), 'Back to All Meetings redundant tooltip removed');
+assert(!headerBarContent.includes('Hide Holiday Calendar sidebar'), '2026 Calendar & Holidays redundant tooltip removed');
+assert(!headerBarContent.includes('Exporting monthly breakdown workbook'), 'Monthly Excel redundant tooltip removed');
+console.log('✓ PASS: Redundant tooltips removed from buttons with visible labels in MeetingHeaderBar');
 
-// 5. ChronologicalNav: Previous & Next Meeting Tooltips
-console.log('\n--- 5. ChronologicalNav Verification ---');
+// 5. ChronologicalNav: Verified Removal of Redundant Tooltips on Labeled Cards
+console.log('\n--- 5. ChronologicalNav Tooltip Verification ---');
 const chronoNavContent = fs.readFileSync(path.resolve('src/features/meeting-reports/components/ChronologicalNav.jsx'), 'utf8');
-assert(chronoNavContent.includes('Tooltip'), 'Tooltip imported in ChronologicalNav');
-assert(chronoNavContent.includes('content={`Go to previous meeting (${prevDate})`}'), 'Previous meeting button has hover tooltip');
-assert(chronoNavContent.includes('content={`Go to next meeting (${nextDate})`}'), 'Next meeting button has hover tooltip');
-console.log('✓ PASS: Previous & Next meeting buttons wrapped in Tooltip');
+assert(!chronoNavContent.includes('Tooltip'), 'Unwanted Tooltip wrapper removed from ChronologicalNav');
+assert(!chronoNavContent.includes('content={`Go to previous meeting'), 'Previous meeting redundant tooltip removed');
+assert(!chronoNavContent.includes('content={`Go to next meeting'), 'Next meeting redundant tooltip removed');
+console.log('✓ PASS: Redundant tooltips removed from Previous & Next meeting buttons in ChronologicalNav');
 
-// 6. Navbar: Search Input Tooltip
-console.log('\n--- 6. Navbar Verification ---');
+// 6. Navbar: Verified Removal of Redundant Search Input Tooltip
+console.log('\n--- 6. Navbar Tooltip Verification ---');
 const navbarContent = fs.readFileSync(path.resolve('src/components/layout/Navbar.jsx'), 'utf8');
-assert(navbarContent.includes('Tooltip'), 'Tooltip imported in Navbar');
-assert(navbarContent.includes('content="Search meetings by date (02-09-2026), month, site, or machine"'), 'Search input has hover tooltip');
-console.log('✓ PASS: Navbar search input wrapped in Tooltip with hideOnFocus');
+assert(!navbarContent.includes('Tooltip'), 'Unwanted Tooltip wrapper removed from Navbar search input');
+assert(!navbarContent.includes('content="Search meetings by date'), 'Search input redundant tooltip removed');
+assert(!navbarContent.includes('title="Reach International — Return to Daily Meeting Report"'), 'Brand logo browser tooltip removed');
+console.log('✓ PASS: Search input and brand logo unwanted tooltips removed from Navbar');
 
-console.log('\n🎉 ALL 19 FEEDBACK ITEMS VERIFIED SUCCESSFULLY!');
+// 7. Desktop Screen Horizontal Overflow Verification
+console.log('\n--- 7. Desktop Screen Horizontal Overflow Verification ---');
+const pageContent = fs.readFileSync(path.resolve('src/features/meeting-reports/components/MeetingSummariesPage.jsx'), 'utf8');
+assert(pageContent.includes('overflow-x-hidden'), 'MeetingSummariesPage scroll containers have overflow-x-hidden');
+assert(pageContent.includes('min-w-0'), 'MeetingSummariesPage flex column has min-w-0');
+
+const partsContent = fs.readFileSync(path.resolve('src/features/meeting-reports/components/PartsSection.jsx'), 'utf8');
+assert(partsContent.includes('lg:min-w-full') && partsContent.includes('lg:table-fixed'), 'PartsSection table adapts to 100% width on desktop screens');
+assert(partsContent.includes('lg:overflow-x-visible'), 'PartsSection table removes horizontal scrolling on desktop');
+
+assert(detailDocContent.includes('w-full max-w-full min-w-0 overflow-hidden'), 'MeetingDetailDocument article prevents horizontal blowout on desktop');
+console.log('✓ PASS: Desktop screen horizontal overflow guards verified across all document containers');
+
+console.log('\n🎉 ALL TOOLTIPS & DESKTOP RESPONSIVE CRITERIA VERIFIED SUCCESSFULLY!');

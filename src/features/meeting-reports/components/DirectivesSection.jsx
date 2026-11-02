@@ -26,16 +26,16 @@ export function DirectivesSection({ directives = [] }) {
                 {directives.map((dir, idx) => (
                     <div 
                         key={idx}
-                        className="p-3.5 sm:p-4 rounded-xl bg-amber-50/60 border border-amber-200/70 border-l-[4px] border-l-theme-directive shadow-2xs flex flex-col gap-2 group"
+                        className="p-3.5 sm:p-4 rounded-xl bg-amber-50/60 border border-amber-200/70 border-l-[4px] border-l-theme-directive shadow-2xs flex flex-col gap-2 group min-w-0 break-words"
                     >
-                        <h4 className="text-xs sm:text-[13px] font-bold text-amber-950 flex items-center gap-1.5">
+                        <h4 className="text-xs sm:text-[13px] font-bold text-amber-950 flex items-center gap-1.5 min-w-0">
                             <Pin className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 transition-transform duration-200 group-hover:rotate-12" />
-                            <span>{dir.title}</span>
+                            <span className="break-words">{dir.title}</span>
                         </h4>
                         {dir.points && dir.points.length > 0 && (
-                            <ul className="flex flex-col gap-1.5 pl-4 sm:pl-5 list-disc text-xs sm:text-[12.5px] text-slate-800 leading-relaxed">
+                            <ul className="flex flex-col gap-1.5 pl-4 sm:pl-5 list-disc text-xs sm:text-[12.5px] text-slate-800 leading-relaxed min-w-0 break-words">
                                 {dir.points.map((pt, pIdx) => (
-                                    <li key={pIdx}>{pt}</li>
+                                    <li key={pIdx} className="break-words">{pt}</li>
                                 ))}
                             </ul>
                         )}

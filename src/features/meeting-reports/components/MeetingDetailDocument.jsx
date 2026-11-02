@@ -20,6 +20,9 @@ import ChronologicalNav from './ChronologicalNav.jsx';
 import MeetingShareMenu from '../../../components/shared/MeetingShareMenu.jsx';
 import Tooltip from '../../../components/shared/Tooltip.jsx';
 import { exportMeetingBreakdownsToExcel } from '../services/excelExportService.js';
+import { useToast } from '../../../components/feedback/ToastProvider.jsx';
+import { STATE_MESSAGES } from '../../../lib/constants/messages.js';
+import { getUserErrorMessage } from '../../../lib/errors/AppError.js';
 
 /**
  * Full Operational Meeting Document Component
@@ -39,6 +42,7 @@ export function MeetingDetailDocument({
     const [copySuccess, setCopySuccess] = useState(false);
     const [isExportingExcel, setIsExportingExcel] = useState(false);
     const copyTimeoutRef = useRef(null);
+    const toast = useToast();
 
     const displayDate = formatDateDDMMYYYY(meeting.date || meeting.dateDisplay || meeting.dateFormatted || meeting.title);
     const isHoliday = Boolean(meeting.isHoliday);
@@ -50,6 +54,7 @@ export function MeetingDetailDocument({
         const success = await copyTextToClipboard(text);
         if (success) {
             setCopySuccess(true);
+            toast.success(STATE_MESSAGES.success.copiedToClipboard, 'Copied');
             if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
             copyTimeoutRef.current = setTimeout(() => setCopySuccess(false), 2500);
         }
@@ -59,8 +64,10 @@ export function MeetingDetailDocument({
         setIsExportingExcel(true);
         try {
             await exportMeetingBreakdownsToExcel(meeting);
+            toast.success(`Meeting breakdown for ${displayDate} exported to Excel.`, 'Excel Export');
         } catch (err) {
             console.error('Failed to export to Excel:', err);
+            toast.error(getUserErrorMessage(err, 'Failed to export meeting report.'), 'Export Error');
         } finally {
             setIsExportingExcel(false);
         }
@@ -70,7 +77,7 @@ export function MeetingDetailDocument({
         <article 
             ref={contentRef}
             data-annotation-root="true"
-            className="bg-white border border-border-light rounded-2xl shadow-card p-4 sm:p-6 lg:p-8 flex flex-col gap-6 select-text transition-all relative"
+            className="bg-white border border-border-light rounded-2xl shadow-card p-4 sm:p-6 lg:p-8 flex flex-col gap-6 select-text transition-all relative w-full max-w-full min-w-0 overflow-hidden"
             aria-label={`Operational Meeting Document for ${displayDate}`}
         >
             {/* Document Header */}

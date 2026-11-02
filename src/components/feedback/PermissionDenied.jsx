@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ShieldAlert, ArrowLeft, Home, KeyRound, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, Home, KeyRound, CheckCircle2 } from 'lucide-react';
 import { Button } from '../ui/Button.jsx';
+import { STATE_MESSAGES } from '../../lib/constants/messages.js';
 
 /**
  * Reach International Operations - Permission Denied (HTTP 403 / RBAC)
@@ -27,17 +28,12 @@ export function PermissionDenied({
         if (onReturnHome) {
             onReturnHome();
         } else if (typeof window !== 'undefined') {
-            window.location.search = '';
-        }
-    };
-
-    const handleGoBack = () => {
-        if (onGoBack) {
-            onGoBack();
-        } else if (typeof window !== 'undefined' && window.history.length > 1) {
-            window.history.back();
-        } else {
-            handleReturnHome();
+            if (window.location.search) {
+                window.history.pushState({}, '', window.location.pathname);
+                window.dispatchEvent(new PopStateEvent('popstate'));
+            } else {
+                window.location.reload();
+            }
         }
     };
 
@@ -56,13 +52,13 @@ export function PermissionDenied({
                 {/* Status Code & Headings */}
                 <div className="flex flex-col gap-1.5">
                     <span className="text-[11px] font-extrabold uppercase tracking-wider text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200 w-fit mx-auto">
-                        HTTP 403 · Access Forbidden
+                        {STATE_MESSAGES.forbidden.badge}
                     </span>
                     <h3 className="text-base sm:text-xl font-bold text-slate-900 tracking-tight mt-1">
-                        Permission Denied
+                        {STATE_MESSAGES.forbidden.title}
                     </h3>
                     <p className="text-xs sm:text-sm text-slate-500 leading-relaxed font-normal">
-                        Your account credentials do not have permission to view or edit <strong className="text-slate-800">{resource}</strong>. This operational area requires <strong className="text-slate-800">{requiredRole}</strong> authorization.
+                        {STATE_MESSAGES.forbidden.description(resource, requiredRole)}
                     </p>
                 </div>
 
@@ -70,20 +66,20 @@ export function PermissionDenied({
                 {accessRequested ? (
                     <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-3 flex items-center justify-center gap-2 text-xs font-semibold animate-fade-in">
                         <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                        <span>Role elevation request dispatched to Plant Administrator.</span>
+                        <span>{STATE_MESSAGES.forbidden.requestDispatched}</span>
                     </div>
                 ) : (
                     <div className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-600 text-xs flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
                             <KeyRound className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                            <span className="truncate">Need clearance for this machine fleet?</span>
+                            <span className="truncate">{STATE_MESSAGES.forbidden.needClearance}</span>
                         </div>
                         <button
                             type="button"
                             onClick={handleRequestAccess}
                             className="font-bold text-theme-breakdown hover:underline flex-shrink-0 cursor-pointer active:scale-95"
                         >
-                            Request Access
+                            {STATE_MESSAGES.forbidden.requestAccess}
                         </button>
                     </div>
                 )}
@@ -97,16 +93,7 @@ export function PermissionDenied({
                         onClick={handleReturnHome}
                         leftIcon={<Home className="w-3.5 h-3.5" />}
                     >
-                        Return to Dashboard
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="md"
-                        shape="rounded"
-                        onClick={handleGoBack}
-                        leftIcon={<ArrowLeft className="w-3.5 h-3.5" />}
-                    >
-                        Go Back
+                        {STATE_MESSAGES.forbidden.returnHomeAction}
                     </Button>
                 </div>
             </div>

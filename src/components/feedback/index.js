@@ -1,5 +1,5 @@
 /**
- * Reach International Operations - Feedback Components Barrel
+ * Reach International Operations - Feedback Components Barrel (Backward Compatible)
  */
 
 export { Spinner } from './Spinner.jsx';
@@ -20,3 +20,4 @@ export {
     CalendarSkeleton, 
     TableSkeleton 
 } from './Skeleton.jsx';
+export { STATE_MESSAGES } from '../../lib/constants/messages.js';

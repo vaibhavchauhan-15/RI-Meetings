@@ -11,7 +11,10 @@ import MeetingList from './MeetingList.jsx';
 import MeetingDetailDocument from './MeetingDetailDocument.jsx';
 import TextHighlightPopup from './TextHighlightPopup.jsx';
 import { MeetingDocumentSkeleton } from '../../../components/ui/Skeleton.jsx';
-import { ErrorBoundary, InlineError, PermissionDenied } from '../../../components/feedback/index.js';
+import { ErrorBoundary, InlineError, PermissionDenied, useToast } from '../../../components/feedback/index.js';
+import { authEvents } from '../../../lib/events/authEvents.js';
+import { getUserErrorMessage } from '../../../lib/errors/AppError.js';
+import { STATE_MESSAGES } from '../../../lib/constants/messages.js';
 import PresentationOverlay from '../../../components/shared/PresentationOverlay.jsx';
 import HolidayCalendar from '../../holidays/components/HolidayCalendar.jsx';
 
@@ -66,6 +69,16 @@ export default function MeetingSummariesPage({
     const [isPresentationMode, setIsPresentationMode] = useState(false);
     const [isExportingMonthExcel, setIsExportingMonthExcel] = useState(false);
     const [showScrollTop, setShowScrollTop] = useState(false);
+    const [forbiddenResource, setForbiddenResource] = useState(null);
+    const toast = useToast();
+
+    // Listen to real 403 Permission Denied events from API interceptor
+    useEffect(() => {
+        const unsubscribe = authEvents.on('permission_denied', (payload) => {
+            setForbiddenResource(payload?.context || 'Operational Meeting Data');
+        });
+        return () => unsubscribe();
+    }, []);
 
     // DOM Refs
     const pageContainerRef = useRef(null);
@@ -249,17 +262,31 @@ export default function MeetingSummariesPage({
         try {
             const monthLabel = `${monthData.monthName || 'Month'} ${monthData.year || '2026'}`;
             await exportMonthBreakdownsToExcel(meetingsToExport, monthLabel);
+            toast.success(STATE_MESSAGES.success.excelExportSuccess, 'Excel Export');
         } catch (err) {
             console.error('Failed to export month to Excel:', err);
+            toast.error(getUserErrorMessage(err, 'Failed to export Excel report.'), 'Export Error');
         } finally {
             setIsExportingMonthExcel(false);
         }
-    }, [monthData]);
+    }, [monthData, toast]);
+
+    if (forbiddenResource) {
+        return (
+            <div className="flex-1 w-full h-full min-h-0 bg-stage-bg flex items-center justify-center p-4 sm:p-6">
+                <PermissionDenied
+                    resource={forbiddenResource}
+                    requiredRole="Operations Manager / Supervisor"
+                    onReturnHome={() => setForbiddenResource(null)}
+                />
+            </div>
+        );
+    }
 
     return (
         <div 
             ref={pageContainerRef}
-            className="flex-1 w-full h-full min-h-0 bg-stage-bg flex flex-col overflow-y-auto relative p-2.5 sm:p-4 lg:p-6"
+            className="flex-1 w-full h-full min-h-0 bg-stage-bg flex flex-col overflow-y-auto overflow-x-hidden relative p-2.5 sm:p-4 lg:p-6"
         >
             <div className="max-w-[1440px] w-full mx-auto flex-1 flex flex-col gap-3 sm:gap-4 min-h-0">
                 {/* 1. Header Bar: Titles, View switcher, Calendar toggle & Monthly export */}
@@ -297,7 +324,7 @@ export default function MeetingSummariesPage({
                 <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4 xl:gap-5 overflow-hidden">
                     {/* Left Column: Meeting Stream OR Selected Meeting Document */}
                     <div 
-                        className={`flex-1 min-h-0 flex flex-col gap-3 overflow-hidden ${
+                        className={`flex-1 min-w-0 min-h-0 flex flex-col gap-3 overflow-hidden ${
                             activeDashboardTab === 'calendar' ? 'hidden lg:flex' : 'flex'
                         }`}
                     >
@@ -319,7 +346,7 @@ export default function MeetingSummariesPage({
                         {selectedMeetingMeta ? (
                             <div 
                                 ref={documentContainerRef}
-                                className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar"
+                                className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden pr-1 custom-scrollbar"
                             >
                                 {isLoadingMeeting ? (
                                     <MeetingDocumentSkeleton />

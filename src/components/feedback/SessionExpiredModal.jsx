@@ -3,6 +3,7 @@ import { LogOut, RefreshCw, Key, ShieldCheck } from 'lucide-react';
 import { authEvents } from '../../lib/events/authEvents.js';
 import { Button } from '../ui/Button.jsx';
 import { supabase } from '../../lib/supabase/client.js';
+import { STATE_MESSAGES } from '../../lib/constants/messages.js';
 
 /**
  * Reach International Operations - Session Expired Flow (HTTP 401)
@@ -37,7 +38,7 @@ export function SessionExpiredModal({ forceOpen = false, onClose }) {
         try {
             const { data, error } = await supabase.auth.refreshSession();
             if (error || !data?.session) {
-                throw new Error(error?.message || 'Token refresh failed. Please log in with your corporate credentials.');
+                throw new Error(error?.message || 'Token refresh failed. Please log in with your credentials.');
             }
             // Success: session restored
             setIsOpen(false);
@@ -78,20 +79,20 @@ export function SessionExpiredModal({ forceOpen = false, onClose }) {
                 {/* Title & Explanations */}
                 <div className="flex flex-col gap-1.5">
                     <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 w-fit mx-auto">
-                        HTTP 401 · Authentication Required
+                        {STATE_MESSAGES.sessionExpired.badge}
                     </span>
                     <h3 id="session-expired-title" className="text-base sm:text-lg font-bold text-slate-900 tracking-tight mt-1">
-                        Session Expired
+                        {STATE_MESSAGES.sessionExpired.title}
                     </h3>
                     <p id="session-expired-desc" className="text-xs sm:text-sm text-slate-500 leading-relaxed font-normal">
-                        Your secure session has timed out. To prevent unauthorized operational record changes, please re-authenticate or refresh your session.
+                        {STATE_MESSAGES.sessionExpired.description}
                     </p>
                 </div>
 
                 {/* Return URL Indicator */}
                 <div className="w-full bg-slate-50 border border-slate-200/90 rounded-xl p-2.5 text-slate-600 text-[11px] flex items-center justify-center gap-2">
                     <Key className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                    <span className="truncate">Active work state saved. You will return to this view upon sign-in.</span>
+                    <span className="truncate">{STATE_MESSAGES.sessionExpired.draftSaved}</span>
                 </div>
 
                 {refreshError && (
@@ -106,22 +107,21 @@ export function SessionExpiredModal({ forceOpen = false, onClose }) {
                         variant="primary"
                         size="md"
                         shape="rounded"
-                        className="w-full sm:w-auto flex-1"
-                        onClick={handleRedirectLogin}
-                        leftIcon={<ShieldCheck className="w-4 h-4" />}
+                        loading={isRefreshing}
+                        onClick={handleRefreshSession}
+                        leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                        className="w-full sm:w-auto"
                     >
-                        Sign In Again
+                        {isRefreshing ? STATE_MESSAGES.sessionExpired.refreshing : STATE_MESSAGES.sessionExpired.refreshAction}
                     </Button>
                     <Button
                         variant="outline"
                         size="md"
                         shape="rounded"
+                        onClick={handleRedirectLogin}
                         className="w-full sm:w-auto"
-                        loading={isRefreshing}
-                        onClick={handleRefreshSession}
-                        leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
                     >
-                        {isRefreshing ? 'Renewing...' : 'Quick Renew'}
+                        {STATE_MESSAGES.sessionExpired.reloginAction}
                     </Button>
                 </div>
             </div>

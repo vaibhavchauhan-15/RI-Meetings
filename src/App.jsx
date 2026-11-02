@@ -9,7 +9,6 @@ import {
     SessionExpiredModal,
     ErrorBoundary 
 } from "./components/feedback";
-import { StatesPreviewModal } from "./components/dev/StatesPreviewModal";
 
 function App() {
   const [resetTrigger, setResetTrigger] = useState(0);
@@ -53,9 +52,6 @@ function App() {
 
         {/* State 8: Session Expired Modal (HTTP 401) */}
         <SessionExpiredModal />
-
-        {/* Interactive 10 States Developer Preview Sandbox */}
-        <StatesPreviewModal />
 
         {process.env.NODE_ENV === "development" && <Agentation />}
       </div>

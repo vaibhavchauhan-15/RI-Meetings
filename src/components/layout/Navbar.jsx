@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, ArrowLeft } from 'lucide-react';
-import Tooltip from '../shared/Tooltip.jsx';
 
 /**
  * Navbar Component for Reach International
@@ -49,18 +48,18 @@ export const Navbar = React.memo(function Navbar({
 
     return (
         <header 
-            className="app-header relative w-full bg-white border-b border-border-light shadow-xs z-30 flex-shrink-0 select-none transition-all"
+            className="w-full bg-white border-b border-border-light h-14 sm:h-16 flex items-center justify-between px-3 sm:px-6 lg:px-7 z-30 flex-shrink-0 select-none shadow-2xs"
             role="banner"
         >
-            <div className="h-16 px-2.5 sm:px-4 md:px-6 lg:px-8 max-w-[1440px] w-full mx-auto flex items-center justify-between gap-3 sm:gap-4">
-                {/* Mobile Expanded Back Button */}
-                {isMobileExpanded && (
+            <div className="max-w-[1440px] w-full mx-auto flex items-center justify-between gap-2 sm:gap-4 relative">
+                
+                {/* Mobile Search Back Button (Visible when search is expanded on mobile) */}
+                {isMobile && isMobileExpanded && (
                     <button
                         type="button"
                         onClick={handleMobileBack}
-                        className="sm:hidden p-2 -ml-1 text-slate-700 hover:text-slate-950 active:scale-95 rounded-xl hover:bg-slate-100 transition-all flex items-center justify-center min-w-[40px] min-h-[40px] flex-shrink-0 cursor-pointer group"
-                        title="Back to normal view"
-                        aria-label="Back to normal view"
+                        className="p-2 -ml-1 text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-100 flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform min-w-[40px] min-h-[40px] cursor-pointer"
+                        aria-label="Back to dashboard view"
                     >
                         <ArrowLeft className="w-5 h-5 text-slate-700 transition-transform duration-200 group-hover:-translate-x-1" />
                     </button>
@@ -73,7 +72,6 @@ export const Navbar = React.memo(function Navbar({
                     className={`inline-flex items-center gap-2 sm:gap-3 group p-1 -ml-1 rounded-xl transition-all duration-200 hover:bg-slate-50 active:scale-[0.98] cursor-pointer focus:outline-none focus:ring-2 focus:ring-theme-breakdown/30 min-h-[44px] min-w-[44px] flex-shrink-0 ${
                         isMobileExpanded ? 'hidden sm:inline-flex' : 'inline-flex'
                     }`}
-                    title="Reach International — Return to Daily Meeting Report"
                     aria-label="Reach International — Return to Daily Meeting Report"
                 >
                     <img 
@@ -85,12 +83,9 @@ export const Navbar = React.memo(function Navbar({
                     />
                 </button>
 
-                {/* Search Input Container with Tooltip */}
+                {/* Search Input Container */}
                 {onSearchChange && (
-                    <Tooltip
-                        content="Search meetings by date (02-09-2026), month, site, or machine"
-                        position="bottom"
-                        hideOnFocus={true}
+                    <div
                         className={`transition-all duration-200 ${
                             isMobileExpanded 
                                 ? 'w-full flex-1' 
@@ -139,7 +134,7 @@ export const Navbar = React.memo(function Navbar({
                                 </button>
                             )}
                         </div>
-                    </Tooltip>
+                    </div>
                 )}
             </div>
         </header>

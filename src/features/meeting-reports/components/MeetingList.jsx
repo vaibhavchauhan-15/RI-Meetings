@@ -3,6 +3,7 @@ import { CalendarX2 } from 'lucide-react';
 import MeetingCard from './MeetingCard.jsx';
 import { MeetingCardSkeleton } from '../../../components/ui/Skeleton.jsx';
 import { EmptyState, NoSearchResults } from '../../../components/feedback/index.js';
+import { STATE_MESSAGES } from '../../../lib/constants/messages.js';
 
 /**
  * MeetingList Component
@@ -35,6 +36,7 @@ export function MeetingList({
             <div className="p-4 sm:p-6 bg-slate-50/60 rounded-2xl border border-border-light">
                 <NoSearchResults 
                     query={searchQuery} 
+                    onClear={onClearSearch}
                     onClearSearch={onClearSearch}
                     suggestions={[
                         'Check for typos in machine models or site names',
@@ -52,8 +54,8 @@ export function MeetingList({
             <div className="p-4 sm:p-6 bg-slate-50/60 rounded-2xl border border-border-light">
                 <EmptyState
                     icon={CalendarX2}
-                    title="No Meetings Recorded"
-                    description="There are no operational meetings logged for this selected month in the Reach database."
+                    title={STATE_MESSAGES.empty.meetingsTitle}
+                    description={STATE_MESSAGES.empty.meetingsDescription}
                 />
             </div>
         );

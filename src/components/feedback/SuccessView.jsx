@@ -1,16 +1,18 @@
 import React from 'react';
-import { Check, ArrowRight, Home } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button.jsx';
+import { STATE_MESSAGES } from '../../lib/constants/messages.js';
 
 /**
  * Reach International Operations - SuccessView Component
  * 
  * Major flow completion screen featuring checkmark micro-interaction,
  * summary details table, and contextual navigation actions.
+ * Never displays fake tracking IDs or simulated timestamps.
  */
 export function SuccessView({
     title = 'Action Completed Successfully',
-    description = 'The operational report has been processed and saved to the Reach database.',
+    description = 'The operational report has been verified and persisted to the Reach database.',
     details = [],
     primaryAction,
     secondaryAction,
@@ -40,7 +42,7 @@ export function SuccessView({
                 </p>
             </div>
 
-            {/* Details Summary Table (if provided) */}
+            {/* Details Summary Table (if real verified details provided) */}
             {details && details.length > 0 && (
                 <div className="w-full bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 flex flex-col gap-2 text-left">
                     <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-200/80 pb-1.5">
@@ -67,11 +69,18 @@ export function SuccessView({
                         size="md"
                         shape="rounded"
                         onClick={() => {
-                            if (typeof window !== 'undefined') window.location.search = '';
+                            if (typeof window !== 'undefined') {
+                                if (window.location.search) {
+                                    window.history.pushState({}, '', window.location.pathname);
+                                    window.dispatchEvent(new PopStateEvent('popstate'));
+                                } else {
+                                    window.location.reload();
+                                }
+                            }
                         }}
                         rightIcon={<ArrowRight className="w-4 h-4" />}
                     >
-                        Back to Dashboard
+                        {STATE_MESSAGES.success.backToDashboardAction}
                     </Button>
                 )}
 

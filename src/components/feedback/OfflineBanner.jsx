@@ -2,6 +2,7 @@ import React from 'react';
 import { WifiOff, Wifi, RefreshCw } from 'lucide-react';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus.js';
 import { Button } from '../ui/Button.jsx';
+import { STATE_MESSAGES } from '../../lib/constants/messages.js';
 
 /**
  * Reach International Operations - Offline Top Banner
@@ -21,7 +22,7 @@ export function OfflineBanner({ onRetry, isChecking = false }) {
                 className="w-full bg-emerald-600 text-white text-xs font-semibold px-4 py-2 flex items-center justify-center gap-2 shadow-sm animate-fade-in z-50 select-none"
             >
                 <Wifi className="w-3.5 h-3.5 animate-bounce-subtle" />
-                <span>Internet connection restored. Live database sync active.</span>
+                <span>{STATE_MESSAGES.offline.reconnectedText}</span>
             </div>
         );
     }
@@ -38,7 +39,7 @@ export function OfflineBanner({ onRetry, isChecking = false }) {
                     <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping flex-shrink-0" />
                     <WifiOff className="w-4 h-4 text-amber-400 flex-shrink-0" />
                     <span className="font-medium text-slate-200 truncate text-[11px] sm:text-xs">
-                        You are currently offline. Viewing cached operational records.
+                        {STATE_MESSAGES.offline.bannerText}
                     </span>
                 </div>
                 <button
@@ -48,10 +49,10 @@ export function OfflineBanner({ onRetry, isChecking = false }) {
                         onRetry?.();
                     }}
                     disabled={isChecking}
-                    className="flex-shrink-0 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 border border-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
+                    className="flex-shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 border border-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 flex items-center gap-1.5 shadow-2xs disabled:opacity-50 min-h-[36px]"
                 >
                     <RefreshCw className={`w-3 h-3 ${isChecking ? 'animate-spin' : ''}`} />
-                    <span>{isChecking ? 'Checking...' : 'Retry Connection'}</span>
+                    <span>{isChecking ? STATE_MESSAGES.offline.checkingStatus : STATE_MESSAGES.offline.retryConnectionAction}</span>
                 </button>
             </div>
         );
@@ -77,6 +78,7 @@ export function OfflineState({ onRetry, isChecking = false }) {
     return (
         <div 
             role="alert"
+            aria-live="assertive"
             className="flex-1 w-full min-h-[360px] flex items-center justify-center p-6 bg-stage-bg select-none animate-fade-in"
         >
             <div className="bg-white border border-border-light rounded-2xl shadow-card p-6 sm:p-10 max-w-md w-full text-center flex flex-col items-center gap-4">
@@ -86,10 +88,10 @@ export function OfflineState({ onRetry, isChecking = false }) {
 
                 <div className="flex flex-col gap-1.5">
                     <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                        No Internet Connection
+                        {STATE_MESSAGES.offline.fullViewTitle}
                     </h3>
                     <p className="text-xs sm:text-sm text-slate-500 leading-relaxed font-normal">
-                        Your device appears to be offline. Reach International operational records require an active internet connection to load fresh breakdowns and holiday calendars.
+                        {STATE_MESSAGES.offline.fullViewDescription}
                     </p>
                 </div>
 
@@ -100,17 +102,9 @@ export function OfflineState({ onRetry, isChecking = false }) {
                         shape="rounded"
                         loading={isChecking}
                         onClick={handleRetry}
-                        leftIcon={<RefreshCw className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-180" />}
+                        leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
                     >
-                        {isChecking ? 'Checking...' : 'Retry Connection'}
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="md"
-                        shape="rounded"
-                        onClick={() => window.location.reload()}
-                    >
-                        Reload Page
+                        {STATE_MESSAGES.offline.retryConnectionAction}
                     </Button>
                 </div>
             </div>

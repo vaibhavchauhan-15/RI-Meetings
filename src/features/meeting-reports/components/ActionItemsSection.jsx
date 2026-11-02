@@ -26,15 +26,15 @@ export function ActionItemsSection({ actionItems = [] }) {
                 {actionItems.map((act, idx) => (
                     <div 
                         key={idx}
-                        className="p-3 sm:p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-200/70 border-l-[4px] border-l-theme-action shadow-2xs flex flex-col gap-1.5 group"
+                        className="p-3 sm:p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-200/70 border-l-[4px] border-l-theme-action shadow-2xs flex flex-col gap-1.5 group min-w-0 break-words"
                     >
-                        <div className="flex items-center gap-1.5 font-bold text-xs sm:text-[13px] text-emerald-950">
+                        <div className="flex items-center gap-1.5 font-bold text-xs sm:text-[13px] text-emerald-950 min-w-0">
                             <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] flex-shrink-0 transition-transform duration-200 group-hover:scale-110">
                                 <UserCheck className="w-3 h-3 text-emerald-800" />
                             </span>
-                            <span>{act.person}</span>
+                            <span className="break-words">{act.person}</span>
                         </div>
-                        <p className="text-xs sm:text-[12.5px] text-slate-800 leading-relaxed pl-6.5">
+                        <p className="text-xs sm:text-[12.5px] text-slate-800 leading-relaxed pl-6.5 break-words">
                             {act.task}
                         </p>
                     </div>

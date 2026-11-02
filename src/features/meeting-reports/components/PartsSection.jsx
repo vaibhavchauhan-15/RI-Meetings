@@ -22,13 +22,13 @@ export function PartsSection({ parts = [] }) {
                 </span>
             </div>
 
-            <div className="clean-table-responsive w-full overflow-x-auto rounded-xl border border-border-light bg-white shadow-2xs">
-                <table className="w-full text-left border-collapse min-w-[560px]">
+            <div className="clean-table-responsive w-full overflow-x-auto lg:overflow-x-visible rounded-xl border border-border-light bg-white shadow-2xs">
+                <table className="w-full text-left border-collapse min-w-[560px] lg:min-w-full lg:table-fixed">
                     <thead>
                         <tr className="bg-slate-50/80 border-b border-border-light text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                             <th className="py-2.5 px-3 sm:px-4 w-12 text-center">#</th>
-                            <th className="py-2.5 px-3 sm:px-4 w-1/3">Part / Component</th>
-                            <th className="py-2.5 px-3 sm:px-4 w-1/4">Equipment / Site Context</th>
+                            <th className="py-2.5 px-3 sm:px-4 w-[28%] sm:w-[26%]">Part / Component</th>
+                            <th className="py-2.5 px-3 sm:px-4 w-[24%] sm:w-[24%]">Equipment / Site Context</th>
                             <th className="py-2.5 px-3 sm:px-4">Status & Next Steps</th>
                         </tr>
                     </thead>
@@ -38,13 +38,13 @@ export function PartsSection({ parts = [] }) {
                                 <td className="py-3 px-3 sm:px-4 text-center font-bold text-slate-400 text-[11px]">
                                     {idx + 1}
                                 </td>
-                                <td className="py-3 px-3 sm:px-4 font-semibold text-slate-900">
+                                <td className="py-3 px-3 sm:px-4 font-semibold text-slate-900 break-words">
                                     {p.part || p.part_name || 'Component'}
                                 </td>
-                                <td className="py-3 px-3 sm:px-4 text-slate-600 font-medium">
+                                <td className="py-3 px-3 sm:px-4 text-slate-600 font-medium break-words">
                                     {p.context || p.equipment_context || '—'}
                                 </td>
-                                <td className="py-3 px-3 sm:px-4 text-slate-700">
+                                <td className="py-3 px-3 sm:px-4 text-slate-700 break-words leading-relaxed">
                                     {p.statusNextSteps || p.status_next_steps || '—'}
                                 </td>
                             </tr>
