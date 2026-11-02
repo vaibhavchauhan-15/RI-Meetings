@@ -1,5 +1,5 @@
 /**
- * Reach International Operations - Daily Meeting Sync (02 Oct 2026)
+ * Reach International Operations - Daily Meeting Sync (02 Nov 2026)
  *
  * Implements strict Reach International standards:
  * - 100% Cloud-Native ingestion (zero static JSON files in src/data/)
@@ -15,11 +15,11 @@ import { syncDailyMeeting, supabaseAdmin } from './sync-daily-meeting.js';
 
 const __filename = fileURLToPath(import.meta.url);
 
-export const meeting02 = {
-    id: "meet-2026-10-02",
-    title: "02-10-2026",
-    date: "2026-10-02",
-    dateFormatted: "02-10-2026",
+export const meeting02Nov = {
+    id: "meet-2026-11-02",
+    title: "02-11-2026",
+    date: "2026-11-02",
+    dateFormatted: "02-11-2026",
     focus: "Bhadrak Units 150/125 pre-dispatch testing and calibration certification, Panipat 11-machine fleet maintenance and JLG 450 engine smoke diagnosis, Mundra joystick theft tagging protocol and 370Ah battery installation, Mumbai severe battery deep discharge crisis and charging cable deployment, rejection of aged March 2024 Trojan batteries, and Jammu AGM battery and wiring harness dispatches.",
     isHoliday: false,
     holidayName: "",
@@ -453,20 +453,20 @@ async function verifyMeeting(meeting) {
 
 async function run() {
     console.log('====================================================');
-    console.log('🚀 Reach International Daily Meeting Supabase Ingestion (02 Oct 2026)');
+    console.log('🚀 Reach International Daily Meeting Supabase Ingestion (02 Nov 2026)');
     console.log('====================================================');
 
-    console.log('\n📥 Ingesting Meeting: 02-10-2026...');
-    const res = await syncDailyMeeting(meeting02);
+    console.log('\n📥 Ingesting Meeting: 02-11-2026...');
+    const res = await syncDailyMeeting(meeting02Nov);
     console.log(`✅ Successfully synced ${res.meetingId}:`);
     console.log(`   - ${res.counts.breakdowns} breakdown machines`);
     console.log(`   - ${res.counts.parts} parts`);
     console.log(`   - ${res.counts.directives} directives`);
     console.log(`   - ${res.counts.actionItems} action items`);
-    await verifyMeeting(meeting02);
+    await verifyMeeting(meeting02Nov);
 
     console.log('\n====================================================');
-    console.log('🎉 MEETING 02-OCT-2026 SUCCESSFULLY INGESTED & VERIFIED IN SUPABASE!');
+    console.log('🎉 MEETING 02-NOV-2026 SUCCESSFULLY INGESTED & VERIFIED IN SUPABASE!');
     console.log('====================================================');
 }
 
